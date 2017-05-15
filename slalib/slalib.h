@@ -17,10 +17,15 @@ int reg_error_number(int error);
 
 
 
+/*To handshake fuction*/
+RSA* getPubkey(const char* id);
+
+
+
 //SLA Functions
 ssize_t recvMsgUntil(int sock, const char* regex,void* buf, size_t n);
 int handshake(int sock, const char* ID, const char* privKeyPath, const char* passPath, const char* successMsg);
-ssize_t recvMsgUntil(int sock, const char* regex, void* buf, size t n);
+ssize_t recvMsgUntil(int sock, const char* regex, void* buf, size_t n);
 void closeSock(int sock);
 int openUDPSock(char *IP, unsigned short port);
 int openTCPSock(char *IP, unsigned short port);

@@ -48,6 +48,39 @@ int reg_check(const char* regex, void* buf){
 	return status;
 }
 
+
+RSA* getPubkey(const char* id){
+
+	FILE *f_key = NULL;
+	char* f_name = NULL;
+	RSA *pub_rsa = NULL;
+
+	/*RSA Buffer*/
+	pub_rsa = RSA_new() ;
+
+
+	/*id + .pub(4byte)*/
+	f_name = (char*)malloc(strlen(id)+ 4);
+	sprintf(f_name , "%s.pub", id);
+
+
+	f_key = fopen(f_name, "r");
+
+	if(f_key < 0){
+		perror("file read\n");
+		return 0;
+	}
+
+	pub_rsa = PEM_read_RSA_PUBKEY(f_key, &pub_rsa,NULL, NULL);
+
+	if(pub_rsa < 0){
+		perror("pub read error\n");
+		return 0;
+	}
+
+	return pub_rsa;
+}
+
 int reg_error_number(int error){
 	
 	switch(error){
