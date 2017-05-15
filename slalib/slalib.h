@@ -12,6 +12,16 @@
 #include <regex.h>
 
 void set_aiocb(struct aiocb *cbp, int fd, void* buffer, size_t size);
-ssize_t recvMsgUntil(int sock, const char* regex,void* buf, size_t n);
 int reg_check(const char* regex, void* buf);
 int reg_error_number(int error);
+
+
+
+//SLA Functions
+ssize_t recvMsgUntil(int sock, const char* regex,void* buf, size_t n);
+int handshake(int sock, const char* ID, const char* privKeyPath, const char* passPath, const char* successMsg);
+ssize_t recvMsgUntil(int sock, const char* regex, void* buf, size t n);
+void closeSock(int sock);
+int openUDPSock(char *IP, unsigned short port);
+int openTCPSock(char *IP, unsigned short port);
+
