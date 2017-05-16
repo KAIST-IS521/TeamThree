@@ -188,6 +188,7 @@ int main(int argc, char** argv)
     char *endp;
     int returnVal = 0;
     int socket;
+    unsigned char *host, *ip;
 
     if(argc != 3)
     {
@@ -222,9 +223,20 @@ int main(int argc, char** argv)
     //socket = openUDPSocket(argv[1], port);  
     if(socket < 0)
         exit(2);
-
-    //Now get the ip of hostname, A record
-    ngethostbyname(NULL, T_A, socket);
+    
+    while(!feof(expect))
+    {
+        fscanf(expect, "%s, %s\n", host, ip);
+        returnVal = validIPCheck(ip);
+	if(returnVal == 1)
+	{
+	    printf("Error: Invalid IP address fromatting\n");
+	    exit(2);
+	}
+	
+	//Now get the ip of hostname, A record
+        ngethostbyname(host, T_A, socket);
+    }
 
   
     return 0;
