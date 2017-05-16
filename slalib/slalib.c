@@ -81,14 +81,18 @@ int openUDPSock(char *IP, unsigned short port){
     while(1) {
         clntLen = sizeof(client_addr);
    
-        if((recvLen=recvfrom(server_fd, recvBuffer, BUF_LEN-1, 0, (struct sockaddr*)&client_addr, &clntLen)) == -1) {
+        if((recvLen=recvfrom(server_fd, recvBuffer, BUF_LEN-1, 0,
+                             (struct sockaddr*)&client_addr, &clntLen)) == -1)
+        {
             perror("recvfrom failed");
             exit(1);
         }
         recvBuffer[recvLen] = '\0';
         printf("Recevied: %s\n", recvBuffer);
         
-        if(sendto(server_fd, recvBuffer, recvLen, 0, (struct sockaddr*)&client_addr, sizeof(client_addr)) != recvLen) {
+        if(sendto(server_fd, recvBuffer, recvLen, 0,
+                  (struct sockaddr*)&client_addr, sizeof(client_addr)) != recvLen)
+        {
             perror("sendto failed");
             exit(1);
         }
