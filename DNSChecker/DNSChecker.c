@@ -12,6 +12,8 @@
 int main(int argc, char** argv)
 {
     FILE *expect = NULL;
+    unsigned short port = 0;
+    char *endp;
 
     if(argc != 3)
     {
@@ -23,9 +25,17 @@ int main(int argc, char** argv)
 
     if(expect == NULL)
     {
-        printf("Usage: ./DNSChecker <ip> <port>\n");
+        printf("Error: No \'expect.csv\' file\n");
 	return 0;
     }
 
+    //convert string to unsigned short value 
+    port = (unsigned short)strtoul(argv[2], &endp, 0);
+    if(endp == argv[2])
+    {
+         printf("Error: Can't convert the port string to unsigned short value\n");
+	 return 0;
+    }
+ 
     return 0;
 }
