@@ -3,11 +3,21 @@ from flask_login import LoginManager, UserMixin, login_required, login_user, log
 from flask_session import Session
 import datetime
 import random
+import gnupg
+import os
 
 login_manager = LoginManager()
 session_manager = Session()
 app = flask.Flask(__name__, template_folder='templates')
+homegpgdir = os.environ['HOME'] + '/.gnupg'
+try:
+    gpg = gnupg.GPG(gnupghome=homegpgdir)
+except TypeError:
+    gpg = gnupg.GPG(homedir=homegpgdir)
 
+# index page
+# login O - redirect to log upload page
+# login X - redirect to login page
 @app.route('/')
 def index():
     login = flask.session.get('login', False)
@@ -16,26 +26,26 @@ def index():
     else:
         return flask.redirect('/login')
 
+# login page
+# GET  - display login page(input ID box)
+# POST - user submitted github ID
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if flask.request.method == 'POST':
         githubID = flask.request.form['id']
-        # TODO: check valid id(finding correspond pub-key)
+        keypath = './pub/' + githubID + '.pub'
+
+        # check github ID by finding public key
+        if not os.path.exists(keypath):
+            return flask.Response('No public key')
+        pubkey = gpg.import_keys(open(keypath).read())
+        challenge = str(random.getrandbits(256))
         flask.session['id'] = githubID
-        challenge = 1
-        for i in range(128):
-            challenge *= random.randrange(1, 10)
         flask.session['challenge'] = challenge
-        # TODO: encrypt with pub-key
-        flask.session['encChallenge'] = 'something base64'#encChallenge
+        flask.session['encChallenge'] = str(gpg.encrypt(challenge, pubkey.fingerprints[0]))
         return flask.redirect('/auth')
 
-    return flask.Response('''
-    <form action="" method="post">
-        ID : <input type=text name=id>
-        <p><input type=submit value="Get Challenge">
-    </form>
-    ''')
+    return flask.render_template('login.html')
 
 @app.route('/auth', methods=['GET', 'POST'])
 def auth():
@@ -46,23 +56,20 @@ def auth():
     if githubID == False or challenge == False or encChallenge == False:
         return flask.redirect('/login')
 
+    # verify challenge
     if flask.request.method == 'POST':
         userChallenge = flask.request.form['challenge']
-        # TODO: decrypt challenge with server privkey and check
-        user = User(githubID, challenge)
-        login_user(user)
-        flask.session['login'] = True
-        return flask.redirect('/upload')
+        # TODO: input correct passpghrase
+        decrypt_data = gpg.decrypt(userChallenge, passphrase='server-pub-key-passphrase')
+        if str(decrypt_data) == challenge:
+            user = User(githubID, challenge)
+            login_user(user)
+            flask.session['login'] = True
+            return flask.redirect('/upload')
+        else:
+            return 'auth fail'
 
-    return flask.Response('''
-    ID : ''' + githubID + '''
-    <p>Challenge : ''' + encChallenge + '''
-    <p>decrypt your <b>pri-key</b> and encrypt it with server <b>pub-key</b>
-    <form action="" method="post">
-        <p><input type=text name=challenge>
-        <p><input type=submit value="Auth">
-    </form>
-    ''')
+    return flask.render_template('auth.html', challenge=encChallenge)
 
 @app.route('/upload', methods=['GET', 'POST'])
 @login_required
@@ -97,8 +104,6 @@ def logout():
 @login_manager.user_loader
 def load_user(userid):
     login = flask.session.get('login', False)
-    print userid
-    # TODO: need to login check. not userid, challenge
     if login:
         return User(userid, flask.session.get('challenge', False))
     else:
