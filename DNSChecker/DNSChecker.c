@@ -6,8 +6,10 @@
  * Terminates with an exit code of 1: Operating abnormally
  * Terminates with an exit code of 2: Cannot establish a connection to the target address
  * */
+#include <stdio.h>
+#include <stdlib.h>
 
-int main(char** argv, int argc)
+int main(int argc, char** argv)
 {
     return 0;
 }
