@@ -237,7 +237,7 @@ int main(int argc, char** argv)
 	//Now get the ip of hostname, A record
         ngethostbyname(host, T_A, socket);
     }
-
+    fclose(expect);
   
     return 0;
 }
