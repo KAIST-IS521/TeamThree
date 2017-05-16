@@ -10,8 +10,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/socket.h>    //you know what this is for
+#include <arpa/inet.h> //inet_addr , inet_ntoa , ntohs etc
+#include <netinet/in.h>
 
 
+#define T_A 1 //Ipv4 address
+#define T_NS 2 //Nameserver
+#define T_CNAME 5 // canonical name
+#define T_SOA 6 /* start of authority zone */
+#define T_PTR 12 /* domain name pointer */
+#define T_MX 15 //Mail server
 //DNS header structure
 struct DNS_HEADER
 {
@@ -95,6 +104,83 @@ int validIPCheck(const char* ip)
     return 0;
 }
 
+/*
+ * This will convert www.google.com to 3www6google3com 
+ * got it :)
+ * */
+void ChangetoDnsNameFormat(unsigned char* dns,unsigned char* host) 
+{
+    int lock = 0 , i;
+    strcat((char*)host,".");
+     
+    for(i = 0 ; i < strlen((char*)host) ; i++) 
+    {
+        if(host[i]=='.') 
+        {
+            *dns++ = i-lock;
+            for(;lock<i;lock++) 
+            {
+                *dns++=host[lock];
+            }
+            lock++; //or lock=i+1;
+        }
+    }
+    *dns++='\0';
+}
+
+void ngethostbyname(unsigned char *host, int query_type, int socket)
+{
+    unsigned char buf[65536],*qname,*reader;
+    int i , j , stop , s;
+    int returnVal;
+
+    struct RES_RECORD answers[20],auth[20],addit[20]; //the replies from the DNS server
+
+    struct DNS_HEADER *dns = NULL;
+    struct QUESTION *qinfo = NULL;
+
+    printf("Resolving %s" , host);
+
+    //Set the DNS structure to standard queries
+    dns = (struct DNS_HEADER *)&buf;
+
+    dns->id = (unsigned short) htons(getpid());
+    dns->qr = 0; //This is a query
+    dns->opcode = 0; //This is a standard query
+    dns->aa = 0; //Not Authoritative
+    dns->tc = 0; //This message is not truncated
+    dns->rd = 1; //Recursion Desired
+    dns->ra = 0; //Recursion not available! hey we dont have it (lol)
+    dns->z = 0;
+    dns->ad = 0;
+    dns->cd = 0;
+    dns->rcode = 0;
+    dns->q_count = htons(1); //we have only 1 question
+    dns->ans_count = 0;
+    dns->auth_count = 0;
+    dns->add_count = 0;
+
+    //point to the query portion
+    qname =(unsigned char*)&buf[sizeof(struct DNS_HEADER)];
+
+    ChangetoDnsNameFormat(qname , host);
+    qinfo =(struct QUESTION*)&buf[sizeof(struct DNS_HEADER) + (strlen((const char*)qname) + 1)]; 
+
+    qinfo->qtype = htons( query_type ); //type of the query , A , MX , CNAME , NS etc
+    qinfo->qclass = htons(1); //its internet (lol)
+
+    printf("\nSending Packet...");
+    returnVal = sendMsg(socket,(char*)buf,sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION));
+    
+    if(returnVal < 0)
+    {
+        printf("Error: Can't send the DNS packet\n");
+        exit(2);
+    }
+
+    printf("Done");
+}
+
 int main(int argc, char** argv)
 {
     FILE *expect = NULL;
@@ -138,7 +224,7 @@ int main(int argc, char** argv)
         exit(2);
 
     //Now get the ip of hostname, A record
-    sendDNS(hostname, T_A);
+    ngethostbyname(NULL, T_A, socket);
 
   
     return 0;
