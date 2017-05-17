@@ -10,6 +10,14 @@
 #include <sys/types.h>
 #include <regex.h>
 
+#define BUF_LEN 128
+struct sockaddr_in server_addr, client_addr;
+char buffer[BUF_LEN], recvBuffer[BUF_LEN];
+char temp[20];
+int server_fd, client_fd;
+int len, msg_size, clntLen, recvLen;
+
+
 int openTCPSock(char *IP, unsigned short port) {
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {// socket
