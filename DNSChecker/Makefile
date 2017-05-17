@@ -1,4 +1,5 @@
-CFLAGS = -Wall
+CFLAGS = -W -Wall 
+CC = gcc
 BUILDDIR = ../build
 
 all: $(BUILDDIR)/DNSChecker

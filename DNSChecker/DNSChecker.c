@@ -128,18 +128,26 @@ void ChangetoDnsNameFormat(unsigned char* dns,unsigned char* host)
     *dns++='\0';
 }
 
-void ngethostbyname(unsigned char *host, int query_type, int socket)
+void ngethostbyname(unsigned char *host, int query_type, int s)
 {
     unsigned char buf[65536],*qname,*reader;
-    int i , j , stop , s;
+    int i , j , stop;
     int returnVal;
+    struct sockaddr_in a; //
 
     struct RES_RECORD answers[20],auth[20],addit[20]; //the replies from the DNS server
+    struct sockaddr_in dest;  //
 
     struct DNS_HEADER *dns = NULL;
     struct QUESTION *qinfo = NULL;
 
     printf("Resolving %s" , host);
+
+    s = socket(AF_INET , SOCK_DGRAM , IPPROTO_UDP); //
+
+    dest.sin_family = AF_INET; //
+    dest.sin_port = htons(53); //
+    dest.sin_addr.s_addr = inet_addr("127.0.0.1"); //
 
     //Set the DNS structure to standard queries
     dns = (struct DNS_HEADER *)&buf;
@@ -170,7 +178,13 @@ void ngethostbyname(unsigned char *host, int query_type, int socket)
     qinfo->qclass = htons(1); //its internet (lol)
 
     printf("\nSending Packet...");
-    returnVal = sendMsg(socket,(char*)buf,sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION));
+    if( sendto(s,(char*)buf,sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION),0,(struct sockaddr*)&dest,sizeof(dest)) < 0)
+    {
+        perror("sendto failed");
+    }
+    printf("Done");
+    
+    //returnVal = sendMsg(socket,(char*)buf,sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION));
     
     if(returnVal < 0)
     {
@@ -183,12 +197,13 @@ void ngethostbyname(unsigned char *host, int query_type, int socket)
 
 int main(int argc, char** argv)
 {
-    FILE *expect = NULL;
     unsigned short port = 0;
-    char *endp;
+    char *endp = NULL;
     int returnVal = 0;
-    int socket;
-    unsigned char *host, *ip;
+    int socket = 0;
+    char ip[20];
+    unsigned char host[40];
+    FILE *expect = NULL;
 
     if(argc != 3)
     {
@@ -197,7 +212,6 @@ int main(int argc, char** argv)
     }
 
     expect = fopen("expect.csv", "r");
-
     if(expect == NULL)
     {
         printf("Error: No \'expect.csv\' file\n");
@@ -226,8 +240,8 @@ int main(int argc, char** argv)
     
     while(!feof(expect))
     {
-        fscanf(expect, "%s, %s\n", host, ip);
-        returnVal = validIPCheck(ip);
+        fscanf(expect, "%[^,], %s\n", host, ip);
+	returnVal = validIPCheck(ip);
 	if(returnVal == 1)
 	{
 	    printf("Error: Invalid IP address fromatting\n");
