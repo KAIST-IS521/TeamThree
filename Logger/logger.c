@@ -22,10 +22,10 @@ void secureExec(const char* pathname, char *args[], char *envp[])
 
     // ensure none of our children will ever be granted more priv
     // (via setuid, capabilities, ...)
-    prctl(PR_SET_NO_NEW_PRIVS, 1);
+    prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);
 
     // ensure no escape is possible via ptrace
-    prctl(PR_SET_DUMPABLE, 0);
+    prctl(PR_SET_DUMPABLE, 0, 0, 0, 0);
 
     ctx = seccomp_init(SCMP_ACT_KILL); // kill if filtered syscall used
 
@@ -45,10 +45,11 @@ void secureExec(const char* pathname, char *args[], char *envp[])
     rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 0);
     if (rc < 0) goto out;
 
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 3,
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 0);
+    /*rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 3,
             SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)pathname),
             SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)args),
-            SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)envp));
+            SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)envp));*/
     if (rc < 0) goto out;
 
     rc = seccomp_load(ctx);
@@ -124,8 +125,9 @@ int main(int argc, char *argv[], char *envp[])
             fclose(logfile);
 
             // get real pathname from dirname and filename
-            path = (char *) malloc (strlen(argv[3]) + strlen(pDirent->d_name) + 1);
+            path = (char *) malloc (strlen(argv[3]) + strlen(pDirent->d_name) + 2);
             strcpy(path, argv[3]);
+            strcat(path, "/");
             strcat(path, pDirent->d_name);
 
             // set args. ip, port are already set
