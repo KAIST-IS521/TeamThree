@@ -5,6 +5,9 @@
 #include <string.h>
 #include <sys/wait.h>
 
+// Directory check
+#include <sys/stat.h>
+
 // Sandbox
 #include <sys/prctl.h>
 #include <seccomp.h>
@@ -60,7 +63,8 @@ out:
 
 int isDirAt(int dfd, const char* pathname)
 {
-    return 1;
+    struct stat sb;
+    return fstatat(dfd, pathname, &sb, 0) == 0 && S_ISDIR(sb.st_mode);
 }
 
 int main(int argc, char *argv[], char *envp[])
@@ -71,7 +75,7 @@ int main(int argc, char *argv[], char *envp[])
     FILE *logfile;
     pid_t pid;
 
-    if (argc <= 5)
+    if (argc < 5)
     {
         printf("%s [ip addr] [port] [testcase dir] [logfile]\n", argv[0]);
         return EXIT_FAILURE;
