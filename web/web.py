@@ -1,7 +1,7 @@
 import flask
 from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
 from flask_session import Session
-import datetime
+import time
 import random
 import gnupg
 import os
@@ -14,6 +14,39 @@ try:
     gpg = gnupg.GPG(gnupghome=homegpgdir)
 except TypeError:
     gpg = gnupg.GPG(homedir=homegpgdir)
+
+def MakeData(dataName, serviceName, dataList):
+    data = '''
+      var %(DATA)s = new google.visualization.DataTable();
+      %(DATA)s.addColumn('timeofday', 'time');
+      %(DATA)s.addColumn('number', '%(SERVICE)s');
+      %(DATA)s.addRows([''' % {'DATA':dataName, 'SERVICE':serviceName}
+
+    for item in dataList[:-1]:
+        data += '[%s, %s], ' % (item[0], item[1])
+    data += '[%s, %s] ]);\n' % (dataList[-1][0], dataList[-1][1])
+
+    return data
+
+def MakeJoinData(result, target1, target2, num):
+    return "var %s = google.visualization.data.join(%s, %s, 'full', [[0, 0]], [%s], [1]);\n" %(result, target1, target2, ''.join(str(i + 1) + ',' for i in range(num-1)) + str(num))
+
+def MakeGraphData(services):
+    data = ''
+    if len(services) == 1:
+        data += makeData('data', services[0], services[services[0]])
+    else:
+        for idx, item in enumerate(services):
+            data += MakeData('data' + str(idx), item, services[item])
+        prev = 'data0'
+        for idx in range(len(services) - 1):
+            if idx == len(services) - 2:
+                data += MakeJoinData('data', prev, 'data' + str(idx+1), idx+1)
+            else:
+                data += MakeJoinData('JD' + str(idx), prev, 'data' + str(idx+1), idx+1)
+                prev = 'JD' + str(idx)
+
+    return data
 
 # index page
 # login O - redirect to log upload page
@@ -79,22 +112,28 @@ def upload_file():
         if 'file' not in flask.request.files:
             flash('No file part')
             return flask.redirect(request.url)
+
+        services = {}
+
         file = flask.request.files['file']
-        # TODO: parse data and draw
-        return file.read()
+        for data in file.read().split('\n'):
+            if data == '': continue
+            items = data.split(',')
+            HMS = time.strftime("[%H, %M, %S]", time.localtime(int(items[0])))
+            service = items[1].strip() + ':' + items[2].strip()
+            status = 1 if items[3].find('up') != -1 else 0
+            if not services.has_key(service):
+                services[service] = []
+            services[service].append((HMS, status))
+        data = MakeGraphData(services)
+        return flask.render_template('chart.html', data=data)
 
     return flask.render_template('upload.html')
-
-@app.route('/chart')
-@login_required
-def chart():
-    labels = ["January","February","March","April","May","June","July","August"]
-    values = [10,9,8,7,6,4,7,8]
-    return flask.render_template('chart.html', values=values, labels=labels)
 
 @app.route("/logout")
 @login_required
 def logout():
+    # logout and delete session informations
     logout_user()
     del flask.session['id']
     del flask.session['challenge']

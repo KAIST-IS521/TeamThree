@@ -1,48 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-   <head>
-   <meta charset="utf-8" />
-   <title>Chart.js </title>
-      <!-- import plugin script -->
-   <script src='static/Chart.min.js'></script>
-   </head>
-<body>
-<h1>Flask Chart.js</h1><!-- bar chart canvas element --><canvas id="chart" width="1200" height="675"></canvas>
-<script>
-   // bar chart data
-   var barData = {
-   labels : [{% for item in labels %}
-                  "{{item}}",
-              {% endfor %}],
-   datasets : [
-      {
-            fillColor: "rgba(151,187,205,0.2)",
-            strokeColor: "rgba(151,187,205,1)",
-            pointColor: "rgba(151,187,205,1)",
-         data : [{% for item in values %}
-                      {{item}},
-                    {% endfor %}]
+<html>
+<head>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+
+        {{data|safe}}
+
+
+        var options = {
+          chart: {
+            title: 'Box Office Earnings in First Two Weeks of Opening',
+            subtitle: 'in millions of dollars (USD)'
+          },
+          width: 1200,
+          height: 675,
+          axes: {
+            x: {
+              0: {side: 'top'}
+            }
+          },
+          interpolateNulls: true
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('linechart'));
+        chart.draw(data, options);
+
       }
-      ]
-   }
- 
-   // get bar chart canvas
-   var mychart = document.getElementById("chart").getContext("2d");
- 
-   steps = 10 // max service num
-   max = 10
-   // draw bar chart
-   new Chart(mychart).Bar(barData, {
-        scaleOverride: true,
-        scaleSteps: steps,
-        scaleStepWidth: Math.ceil(max / steps),
-        scaleStartValue: 0,
-        scaleShowVerticalLines: true,
-        scaleShowGridLines : true,
-        barShowStroke : true,
-        scaleShowLabels: true
-   });
- 
-</script>
+  </script>
+</head>
+<body>
+  <div id="linechart"></div>
 </body>
 </html>
