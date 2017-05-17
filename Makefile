@@ -1,6 +1,5 @@
 BUILDDIR = build   
-subdir = DNSChecker         #The name of the subdirectory you want to build
-subdir = web
+subdir = DNSChecker web        #The name of the subdirectory you want to build
 
 all: $(BUILDDIR) $compile 
 
