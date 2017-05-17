@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <string.h>
 
-int isDirAt(int dirfd, const char* pathname)
 // Sandbox
 #include <sys/prctl.h>
 #include <seccomp.h>
@@ -55,11 +54,12 @@ out:
     return;
 }
 
+int isDirAt(int dfd, const char* pathname)
 {
     return 1;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[], char *envp[])
 {
     char *args[4];
     DIR *pDir;
