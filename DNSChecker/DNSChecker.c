@@ -184,14 +184,15 @@ u_char* ReadName(unsigned char* reader,unsigned char* buffer,int* count)
     return name;
 }
 
-void ngethostbyname(unsigned char *host, int query_type, int s)
+void ngethostbyname(unsigned char *host, int query_type, int s, char *ip)
 {
     unsigned char buf[65536],*qname,*reader;
     int i , j , stop;
     int returnVal;
+    char recevIP[20];
     struct sockaddr_in a; //
 
-    struct RES_RECORD answers[20],auth[20],addit[20]; //the replies from the DNS server
+    struct RES_RECORD answers[20]; //the replies from the DNS server
     struct sockaddr_in dest;  //
 
     struct DNS_HEADER *dns = NULL;
@@ -236,7 +237,8 @@ void ngethostbyname(unsigned char *host, int query_type, int s)
     printf("\nSending Packet...");
     if( sendto(s,(char*)buf,sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION),0,(struct sockaddr*)&dest,sizeof(dest)) < 0)
     {
-        perror("sendto failed");
+        printf("Error: sendto failed");
+	exit(2);
     }
     printf("Done");
     
@@ -253,7 +255,8 @@ void ngethostbyname(unsigned char *host, int query_type, int s)
     printf("\nReceiving answer...");
     if(recvfrom (s,(char*)buf , 65536 , 0 , (struct sockaddr*)&dest , (socklen_t*)&i ) < 0)
     {
-        perror("recvfrom failed");
+        printf("Error: recvfrom failed");
+	exit(2);
     }
     printf("Done");
 
@@ -308,14 +311,23 @@ void ngethostbyname(unsigned char *host, int query_type, int s)
             long *p;
             p=(long*)answers[i].rdata;
             a.sin_addr.s_addr=(*p); //working without ntohl
-            printf("has IPv4 address : %s",inet_ntoa(a.sin_addr));
+            strcpy(recevIP, inet_ntoa(a.sin_addr));
+	    printf("has IPv4 address : %s", recevIP);
+	    if(strcmp(ip, recevIP))
+	    {
+	        printf(": Not Match!\n");
+		if(i == (ntohs(dns->ans_count)-1))  //if it is not match with ip and it is last answer
+		    exit(1);
+	    }
+	    else
+	        break;
         }
          
         if(ntohs(answers[i].resource->type)==5) 
         {
             //Canonical name for an alias
             printf("has alias name : %s",answers[i].rdata);
-        }
+	}
  
         printf("\n");
     }
@@ -376,9 +388,9 @@ int main(int argc, char** argv)
 	}
 	
 	//Now get the ip of hostname, A record
-        ngethostbyname(host, T_A, socket);
+        ngethostbyname(host, T_A, socket, ip);
     }
     fclose(expect);
-  
+    exit(0);
     return 0;
 }
