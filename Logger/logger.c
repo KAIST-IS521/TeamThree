@@ -3,10 +3,14 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/wait.h>
 
 // Sandbox
 #include <sys/prctl.h>
 #include <seccomp.h>
+
+// Unix timestamp
+#include <time.h>
 
 void secureExec(const char* pathname, char *args[], char *envp[])
 {
@@ -125,11 +129,22 @@ int main(int argc, char *argv[], char *envp[])
 
             // TODO: check whether we need environment
             secureExec(path, args, envp);
+
+            // if Error, return status will be 2.
+            return 2;
         }
         else // Parent process
         {
             int status;
             waitpid(pid, &status, 0);
+
+            // TODO: check for other cases - e.g. stop by signal
+            if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
+                fprintf(logfile, "%u, %s, %s, %s\n", (unsigned)time(NULL), args[1], args[2], "up");
+            } else {
+                fprintf(logfile, "%u, %s, %s, %s\n", (unsigned)time(NULL), args[1], args[2], "down");
+            }
+            fflush(logfile);
         }
     }
     closedir(pDir);
