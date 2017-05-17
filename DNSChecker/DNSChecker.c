@@ -320,16 +320,17 @@ void ngethostbyname(unsigned char *host, int query_type, int s, char *ip)
 		    exit(1);
 	    }
 	    else
+	    {
+	        printf(": Match!\n");
 	        break;
+	    }
         }
          
         if(ntohs(answers[i].resource->type)==5) 
         {
             //Canonical name for an alias
-            printf("has alias name : %s",answers[i].rdata);
+            printf("has alias name : %s\n",answers[i].rdata);
 	}
- 
-        printf("\n");
     }
     return;
 }
