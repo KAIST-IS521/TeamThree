@@ -3,8 +3,8 @@
 all: packages
 
 packages:
-	sudo apt-get install gnupg
-	sudo apt-get install python-pip
-	sudo -H pip install Flask
-	sudo -H pip install flask-login
-	sudo -H pip install flask-session
+	if ! dpkg -l | grep gnupg -c >>/dev/null; then sudo apt-get update; sudo apt-get install gnupg; fi
+	if ! dpkg -l | grep python-pip -c >>/dev/null; then sudo apt-get update; sudo apt-get install python-pip; fi
+	sudo -H pip -q install Flask
+	sudo -H pip -q install flask-login
+	sudo -H pip -q install flask-session
