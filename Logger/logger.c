@@ -2,15 +2,66 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <string.h>
 
 int isDirAt(int dirfd, const char* pathname)
+// Sandbox
+#include <sys/prctl.h>
+#include <seccomp.h>
+
+void secureExec(const char* pathname, char *args[], char *envp[])
+{
+    int rc = -1;
+    scmp_filter_ctx ctx;
+
+    // ensure none of our children will ever be granted more priv
+    // (via setuid, capabilities, ...)
+    prctl(PR_SET_NO_NEW_PRIVS, 1);
+
+    // ensure no escape is possible via ptrace
+    prctl(PR_SET_DUMPABLE, 0);
+
+    ctx = seccomp_init(SCMP_ACT_KILL); // kill if filtered syscall used
+
+    // whitelist
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(rt_sigreturn), 0);
+    if (rc < 0) goto out;
+
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit), 0);
+    if (rc < 0) goto out;
+
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit_group), 0);
+    if (rc < 0) goto out;
+
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0);
+    if (rc < 0) goto out;
+
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 0);
+    if (rc < 0) goto out;
+
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 3,
+            SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)pathname),
+            SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)args),
+            SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)envp));
+    if (rc < 0) goto out;
+
+    rc = seccomp_load(ctx);
+    if (rc < 0) goto out;
+
+    execve(pathname, args, envp);
+    rc = -1;
+out:
+    seccomp_release(ctx);
+    return;
+}
+
 {
     return 1;
 }
 
 int main(int argc, char **argv)
 {
-    char *ip, *port;
+    char *args[4];
     DIR *pDir;
     struct dirent *pDirent;
     FILE *logfile;
@@ -22,8 +73,9 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    ip = argv[1];
-    port = argv[2];
+    args[1] = argv[1]; // ip
+    args[2] = argv[2]; // port
+    args[3] = NULL;    // Terminate
 
     pDir = opendir(argv[3]);
     if (pDir == NULL)
@@ -57,14 +109,30 @@ int main(int argc, char **argv)
             closedir(pDir);
             return EXIT_FAILURE;
         }
-        else if (pid == 0)
+        else if (pid == 0) // Child process
         {
-            //TODO: child
+            char* path;
+            closedir(pDir);
+            fclose(logfile);
+
+            // get real pathname from dirname and filename
+            path = (char *) malloc (strlen(argv[3]) + strlen(pDirent->d_name) + 1);
+            strcpy(path, argv[3]);
+            strcat(path, pDirent->d_name);
+
+            // set args. ip, port are already set
+            args[0] = path;
+
+            // TODO: check whether we need environment
+            secureExec(path, args, envp);
         }
-        else
+        else // Parent process
         {
-            //TODO: parent
+            int status;
+            waitpid(pid, &status, 0);
         }
     }
     closedir(pDir);
+    fclose(logfile);
+    return EXIT_SUCCESS;
 }
