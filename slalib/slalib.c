@@ -14,10 +14,10 @@
 #include <errno.h>
 
 /*
-gpgme error check func
+	gpgme error check func
 */
 
-#define PASSPHRASE "password"
+#define PASSPHRASE "rkwhr1235"
 #define fail_if_err(err)					\
   do								\
     {								\
@@ -30,6 +30,13 @@ gpgme error check func
         }							\
     }								\
   while (0)
+
+/*
+	Global var define
+*/
+int bool_path = 1;
+
+
 #ifdef pass
 #define BUF_LEN 128
 struct sockaddr_in server_addr, client_addr;
@@ -170,7 +177,7 @@ int reg_check(const char* regex, void* buf){
 
 
 /*
-Generate 128 random numbers
+	Generate 128 random numbers
 */
 
 unsigned char* gen_rand_num(){
@@ -194,9 +201,9 @@ unsigned char* gen_rand_num(){
 
  
 /*
-gpg_init setting.
-Version check and key ring dir setting
-neseccery import pub/pri key
+	gpg_init setting.
+	Version check and key ring dir setting
+	neseccery import pub/pri key
 */
 void init_gpgme(gpgme_ctx_t *ctx){
 
@@ -215,7 +222,7 @@ void init_gpgme(gpgme_ctx_t *ctx){
 
 
 /*
-setting buffer to gpgme_data format
+	setting buffer to gpgme_data format
 */
 void set_gpgme_buffer(gpgme_data_t *plain_buf, gpgme_data_t *encrypted_buf,
 		      unsigned char* plain, gpgme_data_t *decrypted_buf){
@@ -235,14 +242,14 @@ void set_gpgme_buffer(gpgme_data_t *plain_buf, gpgme_data_t *encrypted_buf,
 
 
 /*
-Getting the pri or pub key in the key ring
+	Getting the pri or pub key in the key ring
 */
 void get_gpgme_key(gpgme_ctx_t ctx, gpgme_key_t **key, int public){
 
 	gpgme_error_t err;
 
 	/*For test name*/
-	const char *name = "jhong3842@gmail.com";
+	const char *name = "IS521_TT@kaist.ac.kr";
 
 	/*start the keylist*/
 	err = gpgme_op_keylist_start (ctx ,name, public);
@@ -260,7 +267,7 @@ void get_gpgme_key(gpgme_ctx_t ctx, gpgme_key_t **key, int public){
 
 
 /*
-Encrypt plaintext with key
+	Encrypt plaintext with key
 */
 void encrypt_gpgme(gpgme_ctx_t ctx, gpgme_key_t *key, 
 			gpgme_data_t clear_buf, gpgme_data_t encrypted_buf){
@@ -284,7 +291,7 @@ void encrypt_gpgme(gpgme_ctx_t ctx, gpgme_key_t *key,
 
 
 /*
-Read data gpgme_data_t 
+	Read data gpgme_data_t 
 */
 void read_data_gpgme(unsigned char* buffer, gpgme_data_t encrypted_buf){
 
@@ -305,7 +312,7 @@ void read_data_gpgme(unsigned char* buffer, gpgme_data_t encrypted_buf){
 
 }
 /*
-Import private key
+	Import private key
 */
 
 void import_key_gpgme(gpgme_ctx_t ctx ,const char* key_path, gpgme_data_t *key_data){
@@ -330,7 +337,7 @@ void import_key_gpgme(gpgme_ctx_t ctx ,const char* key_path, gpgme_data_t *key_d
 }
 
 /*
-callback function passphrase_cb
+	callback function passphrase_cb
 */
 
 gpgme_error_t
@@ -338,8 +345,8 @@ passphrase_cb (void *hook, const char *uid_hint,
                              const char *passphrase_info,
                              int prev_was_bad, int fd){
    char phrase[103];
- 
-   if (PASSPHRASE) {
+
+   if (bool_path) {
       printf("-----------------%d\n",(int)strlen(PASSPHRASE));
       strncpy(phrase, PASSPHRASE, strlen(PASSPHRASE));
       strcat(phrase, "\n");
@@ -351,8 +358,8 @@ passphrase_cb (void *hook, const char *uid_hint,
 
 
 /*
-Register password 
-passphrase_cb setting
+	Register password 
+	passphrase_cb setting
 */
 void passphrase_gpgme(gpgme_ctx_t ctx){
 
@@ -361,21 +368,98 @@ void passphrase_gpgme(gpgme_ctx_t ctx){
 
 
 int handshake(int sock, const char* ID, const char* privKeyPath, const char* passPath, const char* successMsg){
-	gpgme_ctx_t ctx;  // the context
-	gpgme_error_t err; // errors
-	gpgme_key_t key; // the key
-	gpgme_data_t clear_buf, encrypted_buf; // plain buf, encryped buf
-	unsigned char* rand_number = NULL; //rand number pointer
 
-	/*create random number*/
-	rand_number = gen_rand_num();
-		
-	/*To gpgme, init setting*/
-	init_gpgme(&ctx);
+
+
+	/*gpgme var*/
+        gpgme_ctx_t ctx;  // the context
+        gpgme_error_t err; // errors
+        gpgme_key_t key[2] = {NULL, NULL}; // the key   
+	/*
+		clear_buf is random number
+		enctypted_buf is encrypted random number
+		import_key_buf is to import private key of priKeyPath
+		decrypted_buf is to decrypt enctypted data
+	*/
+        gpgme_data_t clear_buf, encrypted_buf, import_key_buf, decrypted_buf; // plain buf, encryped buf
+	gpgme_user_id_t user; //the users
+        gpgme_encrypt_result_t  result; // result
+
+	/*other var*/
+        unsigned char* rand_number =NULL;
+        unsigned char* buffer = NULL;
+        ssize_t nbytes;
+        int index = 0;
+
+
+        /*if private key dont using  a password*/
+        if( passPath == NULL){
+                bool_path = 0;
+        }
+
+        //create random number to auth
+        rand_number = gen_rand_num();
+
+
+        //allocation dec/enc data
+        buffer = (unsigned char*)malloc(4096);
+
+        printf("#####################Gen Random Number###########################\n");
+        for(index = 0 ; index < 128 ; index++){
+
+                if(index % 16 == 0&& index !=0) printf("\n");
+                printf("%02x ", rand_number[index]);
+
+        }
+        printf("\n###############################################################\n");
+
+        /*
+		init to gpgme
+	*/
+        init_gpgme(&ctx);
+
+        /*
+		setting password of the private key
+	*/
+        gpgme_set_passphrase_cb(ctx, passphrase_cb, NULL);
+
+        /*
+		prepare of the buffer to using
+	*/
+        set_gpgme_buffer(&clear_buf, &encrypted_buf, rand_number, &decrypted_buf);
+
+	/*
+		 import private key
+		 priKeyPath is import file name
+		 ex)
+			/tmp/user.pri --> file
+			
+			/tmp/user.pri [O]
+			/tmp/	      [x]
+	*/
+        import_key_gpgme(ctx, privKeyPath ,&import_key_buf);
+
+        /*
+		encrypt random data
+	*/
+        encrypt_gpgme(ctx, key ,clear_buf, encrypted_buf);
+
+        /* 	
+		read data
+		buffer has a ascii encrypted data
+		to send
+	*/
+        read_data_gpgme(buffer, encrypted_buf);
+
+        /*
+		Print buffer data
+	*/
+        printf("\n#########################-Encrytption Data###########################\n\n%s\n\
+#######################################################################\n\n",buffer);
+
+
+
 	
-	/*Setting gpgme buffer*/
-	//set_gpgme_buffer(&clear_buf, rand_number);	
-
 }
 
 int reg_error_number(int error){
