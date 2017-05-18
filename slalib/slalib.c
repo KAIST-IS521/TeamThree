@@ -94,17 +94,18 @@ gpg_init setting.
 Version check and key ring dir setting
 neseccery import pub/pri key
 */
-void init_gpgme(struct gpgme_context *ctx){
+void init_gpgme(gpgme_ctx_t *ctx){
 
+	gpgme_error_t err;
+	gpgme_engine_info_t info;
 	setlocale (LC_ALL, ""); // set the locale
 	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL)); // set gpgme locale
 	gpgme_check_version(NULL); // initialize gpgme
-	gpgme_new (&ctx); // initialize the context
+	err = gpgme_new (ctx); // initialize the context
+	gpgme_set_armor(*(gpgme_ctx_t *)ctx, 1);
 
-
-	// ~/.gnupg key ring dir is default
-	gpgme_ctx_set_engine_info (ctx, GPGME_PROTOCOL_OpenPGP, NULL, "~/.gnupg/");
- 
+	err = gpgme_ctx_set_engine_info (*(gpgme_ctx_t *)ctx, GPGME_PROTOCOL_OpenPGP, NULL, "~/.gnupg/");
+ 	fail_if_err(err);
 
 }
 
@@ -160,10 +161,7 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
 	init_gpgme(&ctx);
 	
 	/*Setting gpgme buffer*/
-	set_gpgme_buffer(&clear_buf, rand_number);
-
-	
-	
+	set_gpgme_buffer(&clear_buf, rand_number);	
 
 }
 
