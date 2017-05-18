@@ -17,7 +17,7 @@
 gpgme error check func
 */
 
-#define PASSPHRASE "private password"
+#define PASSPHRASE "password"
 #define fail_if_err(err)					\
   do								\
     {								\
