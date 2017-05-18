@@ -154,7 +154,7 @@ int main(int argc, char *argv[], char *envp[])
             fclose(logfile);
 
             // get real pathname from dirname and filename
-            path = (char *) malloc (strlen(argv[3]) + strlen(pDirent->d_name) + 2);
+            path = (char*)malloc(strlen(argv[3]) + strlen(pDirent->d_name) + 2);
             strcpy(path, argv[3]);
             strcat(path, "/");
             strcat(path, pDirent->d_name);
@@ -175,9 +175,11 @@ int main(int argc, char *argv[], char *envp[])
 
             // TODO: check for other cases - e.g. stop by signal
             if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
-                fprintf(logfile, "%u, %s, %s, %s\n", (unsigned)time(NULL), args[1], args[2], "up");
+                fprintf(logfile, "%u, %s, %s, %s\n",\
+                        (unsigned)time(NULL), args[1], args[2], "up");
             } else {
-                fprintf(logfile, "%u, %s, %s, %s\n", (unsigned)time(NULL), args[1], args[2], "down");
+                fprintf(logfile, "%u, %s, %s, %s\n",\
+                        (unsigned)time(NULL), args[1], args[2], "down");
             }
             fflush(logfile);
         }
