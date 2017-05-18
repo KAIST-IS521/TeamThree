@@ -28,13 +28,13 @@ gpgme error check func
         }							\
     }								\
   while (0)
+#ifdef pass
 #define BUF_LEN 128
 struct sockaddr_in server_addr, client_addr;
 char buffer[BUF_LEN], recvBuffer[BUF_LEN];
 char temp[20];
 int server_fd, client_fd;
 int len, msg_size, clntLen, recvLen;
-
 
 int openTCPSock(char *IP, unsigned short port) {
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
@@ -129,8 +129,7 @@ void closeSock(int sock)
 {
     closesocket(sock);
 }
-
-
+#endif
 
 void set_aiocb(struct aiocb *cbp, int fd, void* buffer, size_t size) {
     //fd set
@@ -300,6 +299,30 @@ void read_data_gpgme(unsigned char* buffer, gpgme_data_t encrypted_buf){
         nbytes = gpgme_data_read(encrypted_buf, buffer, 4096);
 	buffer[nbytes] = '\x00';
 
+}
+/*
+Import private key
+*/
+
+void import_key_gpgme(gpgme_ctx_t ctx ,const char* key_path, gpgme_data_t *key_data){
+
+	gpgme_error_t err;
+	int key_fd;
+
+	key_fd = open(key_path, O_RDONLY);
+	if(key_fd == -1){
+                fprintf (stderr, "%s:%d: Error in data seek: ",
+                __FILE__, __LINE__);
+                perror("");
+                exit (1);
+
+	}
+
+	err = gpgme_data_new_from_fd(key_data, key_fd);
+        fail_if_err(err);
+
+	err = gpgme_op_import(ctx, *(gpgme_data_t*)key_data);
+	fail_if_err(err);
 }
 
 int handshake(int sock, const char* ID, const char* privKeyPath, const char* passPath, const char* successMsg){
