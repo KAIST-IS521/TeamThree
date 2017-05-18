@@ -34,10 +34,15 @@ int main()
 	//allocation dec/enc data
 	buffer = (unsigned char*)malloc(4096);
 
+	printf("#####################Gen Random Number###########################\n");
 	//debug
 	for(index = 0 ; index < 128 ; index++){
+		
+		if(index % 16 == 0&& index !=0) printf("\n");
 		printf("%02x ", rand_number[index]);
+
 	}
+	printf("\n###############################################################\n");
 
 	//init to gpgme
 	init_gpgme(&ctx);
@@ -47,14 +52,14 @@ int main()
 
 
 	//get the key encryption
-	get_gpgme_key(ctx, &key, 0);
+	get_gpgme_key(ctx, &key, 1);
 
 	//prepare of the buffer to using
 	set_gpgme_buffer(&clear_buf, &encrypted_buf, rand_number, &decrypted_buf);
 
 	//debug
 	user = key[0] -> uids;	
-	printf("Encrypting for %s <%s>\n", user->name, user->email);
+	printf("\nEncrypting for %s <%s>\n\n", user->name, user->email);
 
 
 	//import key 
@@ -69,10 +74,8 @@ int main()
 	read_data_gpgme(buffer, encrypted_buf);
 	
 	//debug
-	printf("%s\n",buffer);
-
-
-
+	printf("\n#########################-Encrytption Data###########################\n\n%s\n\
+#######################################################################\n\n",buffer);
 
 	//encrypted data copy from memory
 	err=gpgme_data_new_from_mem(&encrypted_buf,buffer,strlen(buffer),1);
@@ -86,13 +89,11 @@ int main()
 	//read data
 	read_data_gpgme(buffer, decrypted_buf);
 
+	printf("############################Decrypthon Random Number#############################\n");
         for(index = 0 ; index < 128 ; index++){
+		if(index % 16 == 0&& index !=0) printf("\n");
                 printf("%02x ", buffer[index]);
         }
-
-
-        printf("%s\n",buffer);
-
-
+	printf("\n################################################################################\n");
 
 }
