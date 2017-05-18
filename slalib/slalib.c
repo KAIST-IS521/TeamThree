@@ -152,6 +152,10 @@ void get_gpgme_key(gpgme_ctx_t ctx, gpgme_key_t **key, int public){
 
 }
 
+
+/*
+Encrypt plaintext with key
+*/
 void encrypt_gpgme(gpgme_ctx_t ctx, gpgme_key_t *key, 
 			gpgme_data_t clear_buf, gpgme_data_t encrypted_buf){
 
@@ -169,6 +173,29 @@ void encrypt_gpgme(gpgme_ctx_t ctx, gpgme_key_t *key,
                 result->invalid_recipients->fpr);
                 exit (1);
         }
+
+}
+
+
+/*
+Read data gpgme_data_t 
+*/
+void read_data_gpgme(unsigned char* buffer, gpgme_data_t encrypted_buf){
+
+	ssize_t nbytes;
+
+        nbytes = gpgme_data_seek (encrypted_buf, 0, SEEK_SET);
+        if (nbytes == -1) {
+	        fprintf (stderr, "%s:%d: Error in data seek: ",
+        	         __FILE__, __LINE__);
+	        perror("");
+	        exit (1);
+        }
+
+
+        //buffer = (unsigned char*)malloc(4096);
+        nbytes = gpgme_data_read(encrypted_buf, buffer, 4096);
+	buffer[nbytes] = '\x00';
 
 }
 
