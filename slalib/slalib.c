@@ -28,6 +28,109 @@ gpgme error check func
         }							\
     }								\
   while (0)
+#define BUF_LEN 128
+struct sockaddr_in server_addr, client_addr;
+char buffer[BUF_LEN], recvBuffer[BUF_LEN];
+char temp[20];
+int server_fd, client_fd;
+int len, msg_size, clntLen, recvLen;
+
+
+int openTCPSock(char *IP, unsigned short port) {
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    {// socket
+        printf("Server : Can't open stream socket\n");
+        exit(0);
+    }
+    memset(&server_addr, 0x00, sizeof(server_addr));
+    //server_Addr init
+    
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(IP);
+    server_addr.sin_port = port;
+    
+    if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) <0)
+    {
+        printf("Server : Can't bind local address.\n");
+        exit(0);
+    }
+    
+    if (listen(server_fd, 5) < 0)
+    {
+        printf("Server : Can't listening connect.\n");
+        exit(0);
+    }
+    
+    memset(buffer, 0x00, sizeof(buffer));
+    printf("Server : wating connection request.\n");
+    len = sizeof(client_addr);
+    while (1)
+    {
+        client_fd = accept(server_fd, (struct sockaddr *)&client_addr, &len);
+        if (client_fd < 0)
+        {
+            printf("Server: accept failed.\n");
+            exit(0);
+        }
+        inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, temp, sizeof(temp));
+        printf("Server : %s client connected.\n", temp);
+        
+        msg_size = read(client_fd, buffer, 1024);
+        write(client_fd, buffer, msg_size);
+        close(client_fd);
+        printf("Server : %s client closed.\n", temp);
+    }
+    close(server_fd);
+    return 0;
+}
+
+
+int openUDPSock(char *IP, unsigned short port){
+    if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    {// socket
+        printf("Server : Can't open stream socket\n");
+        exit(0);
+    }
+    /* servAddr init */
+    memset(&server_addr, 0x00, sizeof(server_addr));
+    /* servAddr IP and Port */
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(IP);
+    server_addr.sin_port = port;
+    
+ 
+    if(bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) <0)
+    {
+        printf("Server : Can't bind local address.\n");
+        exit(0);
+    }
+    while(1) {
+        clntLen = sizeof(client_addr);
+   
+        if((recvLen=recvfrom(server_fd, recvBuffer, BUF_LEN-1, 0,
+                             (struct sockaddr*)&client_addr, &clntLen)) == -1)
+        {
+            perror("recvfrom failed");
+            exit(1);
+        }
+        recvBuffer[recvLen] = '\0';
+        printf("Recevied: %s\n", recvBuffer);
+        
+        if(sendto(server_fd, recvBuffer, recvLen, 0,
+                  (struct sockaddr*)&client_addr, sizeof(client_addr)) != recvLen)
+        {
+            perror("sendto failed");
+            exit(1);
+        }
+    }
+}
+
+void closeSock(int sock)
+{
+    closesocket(sock);
+}
+
+
 
 void set_aiocb(struct aiocb *cbp, int fd, void* buffer, size_t size) {
     //fd set
