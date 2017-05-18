@@ -10,7 +10,9 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <regex.h>
-
+#include <time.h>
+#include "gpgme.h"
+#include "locale.h"
 void set_aiocb(struct aiocb *cbp, int fd, void* buffer, size_t size);
 int reg_check(const char* regex, void* buf);
 int reg_error_number(int error);
@@ -19,6 +21,9 @@ int reg_error_number(int error);
 
 /*To handshake fuction*/
 RSA* getPubkey(const char* id);
+unsigned char* gen_rand_num();
+unsigned char* public_encrypt(unsigned char * data,int data_len,RSA *key);
+RSA * createRSAWithFilename(char * filename,int public);
 
 
 

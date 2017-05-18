@@ -9,11 +9,25 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <regex.h>
+#include <gpgme.h>
+#include <locale.h>
+#include <errno.h>
 
-
-
-
-
+/*
+gpgme error check func
+*/
+#define fail_if_err(err)					\
+  do								\
+    {								\
+      if (err)							\
+        {							\
+          fprintf (stderr, "%s:%d: %s: %s\n",			\
+                   __FILE__, __LINE__, gpgme_strsource (err),	\
+		   gpgme_strerror (err));			\
+          exit (1);						\
+        }							\
+    }								\
+  while (0)
 
 void set_aiocb(struct aiocb *cbp, int fd, void* buffer, size_t size) {
     //fd set
@@ -26,7 +40,9 @@ void set_aiocb(struct aiocb *cbp, int fd, void* buffer, size_t size) {
     cbp->aio_offset     = 0;
 }
 
-
+/*
+	reg check
+*/
 int reg_check(const char* regex, void* buf){
 
 	regex_t state;
@@ -49,36 +65,106 @@ int reg_check(const char* regex, void* buf){
 }
 
 
-RSA* getPubkey(const char* id){
+/*
+Generate 128 random numbers
+*/
 
-	FILE *f_key = NULL;
-	char* f_name = NULL;
-	RSA *pub_rsa = NULL;
+unsigned char* gen_rand_num(){
 
-	/*RSA Buffer*/
-	pub_rsa = RSA_new() ;
+	unsigned char *buf = NULL;
+	int index = 0;
+	srand((unsigned int)time(NULL));
+	
+	buf = (unsigned char*)malloc(128);
 
-
-	/*id + .pub(4byte)*/
-	f_name = (char*)malloc(strlen(id)+ 4);
-	sprintf(f_name , "%s.pub", id);
-
-
-	f_key = fopen(f_name, "r");
-
-	if(f_key < 0){
-		perror("file read\n");
-		return 0;
+	while(index < 128){
+		buf[index]= rand() % (0xff + 1);
+		index ++;
 	}
 
-	pub_rsa = PEM_read_RSA_PUBKEY(f_key, &pub_rsa,NULL, NULL);
+	return buf;
+	
 
-	if(pub_rsa < 0){
-		perror("pub read error\n");
-		return 0;
-	}
+}
 
-	return pub_rsa;
+
+ 
+/*
+gpg_init setting.
+Version check and key ring dir setting
+neseccery import pub/pri key
+*/
+void init_gpgme(struct gpgme_context *ctx){
+
+	setlocale (LC_ALL, ""); // set the locale
+	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL)); // set gpgme locale
+	gpgme_check_version(NULL); // initialize gpgme
+	gpgme_new (&ctx); // initialize the context
+
+
+	// ~/.gnupg key ring dir is default
+	gpgme_ctx_set_engine_info (ctx, GPGME_PROTOCOL_OpenPGP, NULL, "~/.gnupg/");
+ 
+
+}
+
+
+/*
+setting buffer to gpgme_data format
+*/
+void set_gpgme_buffer(gpgme_data_t *buf, unsigned char* plain){
+	gpgme_error_t err;
+	/* Prepare the data buffers */
+	err = gpgme_data_new_from_mem(buf, plain, 128, 1);
+ 	fail_if_err(err);
+}
+
+
+
+/*
+Getting the pri or pub key in the key ring
+*/
+void get_gpgme_key(gpgme_ctx_t ctx, gpgme_key_t *key, int public){
+
+	gpgme_error_t err;
+
+	/*For test name*/
+	const char *name = "Jaehong kim";
+
+	/*start the keylist*/
+	err = gpgme_op_keylist_start (ctx ,name, public);
+	fail_if_err(err);
+
+	/*keylist searching*/
+	err =  gpgme_op_keylist_next(ctx, key);
+	fail_if_err(err);
+
+	/*keylist end*/	
+	err = gpgme_op_keylist_end(ctx);
+	fail_if_err(err);
+
+}
+
+
+int handshake(int sock, const char* ID, const char* privKeyPath, const char* passPath, const char* successMsg){
+	gpgme_ctx_t ctx;  // the context
+	gpgme_error_t err; // errors
+	gpgme_key_t key; // the key
+	gpgme_data_t clear_buf, encrypted_buf; // plain buf, encryped buf
+	unsigned char* rand_number = NULL; //rand number pointer
+
+	/*create random number*/
+	rand_number = gen_rand_num();
+		
+	/*To gpgme, init setting*/
+	init_gpgme(&ctx);
+	
+	/*Setting gpgme buffer*/
+	set_gpgme_buffer(&clear_buf, rand_number);
+
+	
+	
+
 }
 
 int reg_error_number(int error){
