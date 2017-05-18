@@ -16,8 +16,6 @@
 /*
 	gpgme error check func
 */
-
-#define PASSPHRASE "rkwhr1235"
 #define fail_if_err(err)					\
   do								\
     {								\
@@ -35,6 +33,22 @@
 	Global var define
 */
 int bool_path = 1;
+
+
+const char* email[] =
+{
+	"jhong3842@gmail.com",
+	"IS521_TT@kaist.ac.kr",
+
+};
+
+const char* github_id[] = 
+{
+	"jhong3842",	
+	"Team_Three"	//server
+};
+
+
 
 
 #ifdef pass
@@ -244,12 +258,19 @@ void set_gpgme_buffer(gpgme_data_t *plain_buf, gpgme_data_t *encrypted_buf,
 /*
 	Getting the pri or pub key in the key ring
 */
-void get_gpgme_key(gpgme_ctx_t ctx, gpgme_key_t **key, int public){
+void get_gpgme_key(gpgme_ctx_t ctx, gpgme_key_t **key, int public, const char* id){
 
 	gpgme_error_t err;
+	char name[100] = {0};
+	int index = 0;
+
+	for(index = 0 ; index < 32; index ++){
+		if(!strcmp(github_id[index], id)) break;
+	}
+
 
 	/*For test name*/
-	const char *name = "IS521_TT@kaist.ac.kr";
+	strcpy(name, email[index]);
 
 	/*start the keylist*/
 	err = gpgme_op_keylist_start (ctx ,name, public);
@@ -346,9 +367,9 @@ passphrase_cb (void *hook, const char *uid_hint,
                              int prev_was_bad, int fd){
    char phrase[103];
 
+   // TODO: file read and input password
    if (bool_path) {
-      printf("-----------------%d\n",(int)strlen(PASSPHRASE));
-      strncpy(phrase, PASSPHRASE, strlen(PASSPHRASE));
+      strncpy(phrase, "password", strlen("password"));
       strcat(phrase, "\n");
       write (fd, phrase, strlen(phrase));
    }
@@ -374,14 +395,16 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
 	/*gpgme var*/
         gpgme_ctx_t ctx;  // the context
         gpgme_error_t err; // errors
-        gpgme_key_t key[2] = {NULL, NULL}; // the key   
+        gpgme_key_t key[2] = {NULL, NULL}; // the key
+	gpgme_key_t pri_key[2]  = {NULL, NULL};
 	/*
 		clear_buf is random number
 		enctypted_buf is encrypted random number
 		import_key_buf is to import private key of priKeyPath
 		decrypted_buf is to decrypt enctypted data
+		recv_buf is to data encrypted by public key 
 	*/
-        gpgme_data_t clear_buf, encrypted_buf, import_key_buf, decrypted_buf; // plain buf, encryped buf
+        gpgme_data_t clear_buf, encrypted_buf, import_key_buf, decrypted_buf, recv_buf; // plain buf, encryped buf
 	gpgme_user_id_t user; //the users
         gpgme_encrypt_result_t  result; // result
 
@@ -417,6 +440,8 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
 		init to gpgme
 	*/
         init_gpgme(&ctx);
+	gpgme_data_new(&recv_buf);
+
 
         /*
 		setting password of the private key
@@ -440,6 +465,13 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
         import_key_gpgme(ctx, privKeyPath ,&import_key_buf);
 
         /*
+		get the key encryption
+		key is the pub 
+	*/
+        get_gpgme_key(ctx, &key, 0, ID);
+
+
+        /*
 		encrypt random data
 	*/
         encrypt_gpgme(ctx, key ,clear_buf, encrypted_buf);
@@ -454,13 +486,97 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
         /*
 		Print buffer data
 	*/
-        printf("\n#########################-Encrytption Data###########################\n\n%s\n\
+        printf("\n#########################-Encrytption Data to send###########################\n\n%s\n\
 #######################################################################\n\n",buffer);
 
 
+	/*
+		Send Data is encrypted by github id public key
+	*/
+	aio_send(sock, buffer, 4096);
+
+
+        /*
+                Recv Data is data encrypted by server public key
+        */
+        memset(buffer, 0x00, 4096);
+	nbytes = aio_recv(sock,buffer, 4096);
+
+	buffer[nbytes] = '\x00';
+        //encrypted data copy from memory
+        err=gpgme_data_new_from_mem(&recv_buf,buffer,strlen(buffer),1);
+
+        printf("\n\n#########################-Encrytption Data by server public###########################\n\n%s\n\
+#######################################################################\n\n",buffer);
+
+
+        //decrypt encrypted data
+        err = gpgme_op_decrypt(ctx, recv_buf, decrypted_buf);
+
+        //memory init
+        memset(buffer, 0x00, 4096);
+
+        //read data
+        read_data_gpgme(buffer, decrypted_buf);
+
+
+	printf("############################Decrypthon Random Number#############################\n");
+        for(index = 0 ; index < 128 ; index++){
+                if(index % 16 == 0&& index !=0) printf("\n");
+                printf("%02x ", buffer[index]);
+        }
+        printf("\n################################################################################\n");	
 
 	
 }
+
+
+ssize_t 
+aio_send(int sock, void* buf, size_t n){
+
+        int ret , len; 
+        struct aiocb cb;
+
+        memset(&cb , 0x00, sizeof(struct aiocb));
+        set_aiocb(&cb, sock, buf, n);
+
+        ret = aio_write(&cb);
+        if (ret < 0) perror("aio_read");
+        
+        while ( aio_error( &cb ) == EINPROGRESS ){}
+
+        /* got ret bytes on the read */
+	if ((len = aio_return(&cb)) > 0) {
+              return len;
+	} else {
+          /* read failed, consult errno */
+          return -1;
+      }       
+}
+
+ssize_t
+aio_recv(int sock, void* buf, size_t n){
+
+        int ret , len;
+        struct aiocb cb;
+
+        memset(&cb , 0x00, sizeof(struct aiocb));
+        set_aiocb(&cb, sock, buf, n);
+
+        ret = aio_read(&cb);
+        if (ret < 0) perror("aio_read");
+
+        while ( aio_error( &cb ) == EINPROGRESS ){}
+
+        /* got ret bytes on the read */
+        if ((len = aio_return(&cb)) > 0) {
+              return len;
+        } else {
+          /* read failed, consult errno */
+          return -1;
+      }
+}
+
 
 int reg_error_number(int error){
 	
