@@ -33,10 +33,34 @@ void secureExec(const char* pathname, char *args[], char *envp[])
     rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(rt_sigreturn), 0);
     if (rc < 0) goto out;
 
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(brk), 0);
+    if (rc < 0) goto out;
+
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(mmap), 0);
+    if (rc < 0) goto out;
+
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(munmap), 0);
+    if (rc < 0) goto out;
+
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(mprotect), 0);
+    if (rc < 0) goto out;
+
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(fstat), 0);
+    if (rc < 0) goto out;
+
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(close), 0);
+    if (rc < 0) goto out;
+
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(arch_prctl), 0);
+    if (rc < 0) goto out;
+
     rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit), 0);
     if (rc < 0) goto out;
 
     rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit_group), 0);
+    if (rc < 0) goto out;
+
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(open), 0);
     if (rc < 0) goto out;
 
     rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0);
@@ -50,6 +74,11 @@ void secureExec(const char* pathname, char *args[], char *envp[])
             SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)pathname),
             SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)args),
             SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)envp));*/
+    if (rc < 0) goto out;
+
+    // make access check fail
+    // We cannot kill because kernel uses it automatically for ld-preload
+    rc = seccomp_rule_add(ctx, SCMP_ACT_ERRNO(-1), SCMP_SYS(access), 0);
     if (rc < 0) goto out;
 
     rc = seccomp_load(ctx);
