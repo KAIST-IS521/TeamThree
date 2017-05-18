@@ -131,7 +131,7 @@ void set_gpgme_buffer(gpgme_data_t *plain_buf, gpgme_data_t *encrypted_buf,
 /*
 Getting the pri or pub key in the key ring
 */
-void get_gpgme_key(gpgme_ctx_t ctx, gpgme_key_t *key, int public){
+void get_gpgme_key(gpgme_ctx_t ctx, gpgme_key_t **key, int public){
 
 	gpgme_error_t err;
 
@@ -143,7 +143,7 @@ void get_gpgme_key(gpgme_ctx_t ctx, gpgme_key_t *key, int public){
 	fail_if_err(err);
 
 	/*keylist searching*/
-	err =  gpgme_op_keylist_next(ctx, key);
+	err =  gpgme_op_keylist_next(ctx, (gpgme_key_t*)&key[0]);
 	fail_if_err(err);
 
 	/*keylist end*/	
@@ -152,6 +152,25 @@ void get_gpgme_key(gpgme_ctx_t ctx, gpgme_key_t *key, int public){
 
 }
 
+void encrypt_gpgme(gpgme_ctx_t ctx, gpgme_key_t *key, 
+			gpgme_data_t clear_buf, gpgme_data_t encrypted_buf){
+
+        gpgme_error_t err;
+        gpgme_encrypt_result_t  result;
+
+        err = gpgme_op_encrypt(ctx, key,
+                          GPGME_ENCRYPT_ALWAYS_TRUST, clear_buf, encrypted_buf);
+
+        fail_if_err(err);
+        result = gpgme_op_encrypt_result(ctx);
+
+        if (result->invalid_recipients){
+                fprintf (stderr, "Invalid recipient found: %s\n",
+                result->invalid_recipients->fpr);
+                exit (1);
+        }
+
+}
 
 int handshake(int sock, const char* ID, const char* privKeyPath, const char* passPath, const char* successMsg){
 	gpgme_ctx_t ctx;  // the context
