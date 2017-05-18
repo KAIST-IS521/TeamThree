@@ -113,11 +113,17 @@ void init_gpgme(gpgme_ctx_t *ctx){
 /*
 setting buffer to gpgme_data format
 */
-void set_gpgme_buffer(gpgme_data_t *buf, unsigned char* plain){
+void set_gpgme_buffer(gpgme_data_t *plain_buf, gpgme_data_t *encrypted_buf,
+		      unsigned char* plain){
 	gpgme_error_t err;
+
 	/* Prepare the data buffers */
-	err = gpgme_data_new_from_mem(buf, plain, 128, 1);
+	err = gpgme_data_new_from_mem(plain_buf, plain, 128, 1);
  	fail_if_err(err);
+        err = gpgme_data_new(encrypted_buf);
+        fail_if_err(err);
+
+	
 }
 
 
@@ -161,7 +167,7 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
 	init_gpgme(&ctx);
 	
 	/*Setting gpgme buffer*/
-	set_gpgme_buffer(&clear_buf, rand_number);	
+	//set_gpgme_buffer(&clear_buf, rand_number);	
 
 }
 
