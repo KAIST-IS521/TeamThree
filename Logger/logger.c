@@ -163,7 +163,11 @@ int main(int argc, char *argv[], char *envp[])
             args[0] = path;
 
             // TODO: check whether we need environment
+#ifndef DEBUG
             secureExec(path, args, envp);
+#else
+            execve(path, args, envp);
+#endif
 
             // if Error, return status will be 2.
             return 2;
