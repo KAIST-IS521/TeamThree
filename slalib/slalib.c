@@ -16,6 +16,8 @@
 /*
 gpgme error check func
 */
+
+#define PASSPHRASE "private password"
 #define fail_if_err(err)					\
   do								\
     {								\
@@ -206,7 +208,7 @@ void init_gpgme(gpgme_ctx_t *ctx){
 	err = gpgme_new (ctx); // initialize the context
 	gpgme_set_armor(*(gpgme_ctx_t *)ctx, 1);
 
-	err = gpgme_ctx_set_engine_info (*(gpgme_ctx_t *)ctx, GPGME_PROTOCOL_OpenPGP, NULL, "~/.gnupg/");
+	err = gpgme_ctx_set_engine_info (*(gpgme_ctx_t *)ctx, GPGME_PROTOCOL_OpenPGP, "/usr/bin/gpg", "~/.gnupg/");
  	fail_if_err(err);
 
 }
@@ -216,7 +218,7 @@ void init_gpgme(gpgme_ctx_t *ctx){
 setting buffer to gpgme_data format
 */
 void set_gpgme_buffer(gpgme_data_t *plain_buf, gpgme_data_t *encrypted_buf,
-		      unsigned char* plain){
+		      unsigned char* plain, gpgme_data_t *decrypted_buf){
 	gpgme_error_t err;
 
 	/* Prepare the data buffers */
@@ -224,6 +226,8 @@ void set_gpgme_buffer(gpgme_data_t *plain_buf, gpgme_data_t *encrypted_buf,
  	fail_if_err(err);
         err = gpgme_data_new(encrypted_buf);
         fail_if_err(err);
+	err = gpgme_data_new(decrypted_buf);
+	fail_if_err(err);
 
 	
 }
@@ -238,7 +242,7 @@ void get_gpgme_key(gpgme_ctx_t ctx, gpgme_key_t **key, int public){
 	gpgme_error_t err;
 
 	/*For test name*/
-	const char *name = "Jaehong kim";
+	const char *name = "jhong3842@gmail.com";
 
 	/*start the keylist*/
 	err = gpgme_op_keylist_start (ctx ,name, public);
@@ -324,6 +328,37 @@ void import_key_gpgme(gpgme_ctx_t ctx ,const char* key_path, gpgme_data_t *key_d
 	err = gpgme_op_import(ctx, *(gpgme_data_t*)key_data);
 	fail_if_err(err);
 }
+
+/*
+callback function passphrase_cb
+*/
+
+gpgme_error_t
+passphrase_cb (void *hook, const char *uid_hint,
+                             const char *passphrase_info,
+                             int prev_was_bad, int fd){
+   char phrase[103];
+ 
+   if (PASSPHRASE) {
+      printf("-----------------%d\n",(int)strlen(PASSPHRASE));
+      strncpy(phrase, PASSPHRASE, strlen(PASSPHRASE));
+      strcat(phrase, "\n");
+      write (fd, phrase, strlen(phrase));
+   }
+ 
+  return 0;
+}
+
+
+/*
+Register password 
+passphrase_cb setting
+*/
+void passphrase_gpgme(gpgme_ctx_t ctx){
+
+	gpgme_set_passphrase_cb(ctx, passphrase_cb, NULL);
+}
+
 
 int handshake(int sock, const char* ID, const char* privKeyPath, const char* passPath, const char* successMsg){
 	gpgme_ctx_t ctx;  // the context

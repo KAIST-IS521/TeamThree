@@ -22,9 +22,9 @@ int reg_error_number(int error);
 /*To handshake fuction*/
 RSA* getPubkey(const char* id);
 unsigned char* gen_rand_num();
-unsigned char* public_encrypt(unsigned char * data,int data_len,RSA *key);
-RSA * createRSAWithFilename(char * filename,int public);
-
+gpgme_error_t
+passphrase_cb(void *opaque, const char *uid_hint, const char *passphrase_info,
+              int last_was_bad, int fd);
 
 
 //SLA Functions
