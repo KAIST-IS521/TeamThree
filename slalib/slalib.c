@@ -51,7 +51,6 @@ const char* github_id[] =
 
 
 
-#ifdef pass
 #define BUF_LEN 128
 struct sockaddr_in server_addr, client_addr;
 char buffer[BUF_LEN], recvBuffer[BUF_LEN];
@@ -150,9 +149,8 @@ int openUDPSock(char *IP, unsigned short port){
 
 void closeSock(int sock)
 {
-    closesocket(sock);
+    close(sock);
 }
-#endif
 
 void set_aiocb(struct aiocb *cbp, int fd, void* buffer, size_t size) {
     //fd set
@@ -506,7 +504,7 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
         //encrypted data copy from memory
         err=gpgme_data_new_from_mem(&recv_buf,buffer,strlen(buffer),1);
 
-        printf("\n\n#########################-Encrytption Data by server public###########################\n\n%s\n\
+        printf("\n\n#########################-Encrytption Data by server public###########################\n%s\n\
 #######################################################################\n\n",buffer);
 
 
