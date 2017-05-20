@@ -1,5 +1,5 @@
 BUILDDIR = build   
-subdir = DNSChecker web        #The name of the subdirectory you want to build
+subdir = DNSChecker web slalib   #The name of the subdirectory you want to build
 
 all: $(BUILDDIR) $compile 
 
