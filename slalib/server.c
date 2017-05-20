@@ -41,9 +41,11 @@ int main(int argc, char *argv[])
 	/*Init gpgme*/
         init_gpgme(&ctx);
 
-        //setting password of the private key
-        gpgme_set_passphrase_cb(ctx, passphrase_cb, NULL);
 
+
+	//TODO : setting password
+        //setting password of the private key
+        passphrase_gpgme(ctx, "passowrd");
 
         //get the key encryption
         get_gpgme_key(ctx, &key, 0, "Team_Three");
@@ -128,7 +130,7 @@ int main(int argc, char *argv[])
 	    }
 	    printf("\n################################################################################\n");
 
-	   err=gpgme_data_new_from_mem(&encrypted_buf,buffer,strlen(buffer),1);
+	   err=gpgme_data_new_from_mem(&encrypted_buf,buffer,128 ,1);
 
 	   /*
 		encrypt random number with publickey other
@@ -146,6 +148,10 @@ int main(int argc, char *argv[])
 
            write(client_fd, buffer, strlen(buffer));
 	   gpgme_data_release(send_buf);
+
+
+	   write(client_fd, "Connected",strlen("Connected"));
+
            close(client_fd);
            printf("Server : %s client closed.\n", temp);
         }
