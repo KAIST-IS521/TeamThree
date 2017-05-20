@@ -34,7 +34,14 @@ int main(int argc, char *argv[]) {
 	buf =(void*) malloc(4096);
 	
 	
-        handshake(cli_fd,"jhong3842","/home/richong/TeamThree/slalib/TTprivate.key","134","Connected");
+        if( 
+	handshake(cli_fd,"jhong3842",
+	"/home/richong/tmp/TeamThree/slalib/TTprivate.key",
+	"/home/richong/tmp/TeamThree/slalib/pass",
+	"Connected")){
+		printf("\n--------------------------handshake success------\n");
+	}
+		
 	//recvMsgUntil(cli_fd, buf, 4096);
 	
 	close(cli_fd);

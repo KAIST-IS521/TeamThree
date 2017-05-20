@@ -33,7 +33,7 @@
 	Global var define
 */
 int bool_path = 1;
-
+char g_password[100] = {0};
 
 const char* email[] =
 {
@@ -51,7 +51,6 @@ const char* github_id[] =
 
 
 
-#ifdef pass
 #define BUF_LEN 128
 struct sockaddr_in server_addr, client_addr;
 char buffer[BUF_LEN], recvBuffer[BUF_LEN];
@@ -150,9 +149,8 @@ int openUDPSock(char *IP, unsigned short port){
 
 void closeSock(int sock)
 {
-    closesocket(sock);
+    close(sock);
 }
-#endif
 
 void set_aiocb(struct aiocb *cbp, int fd, void* buffer, size_t size) {
     //fd set
@@ -367,9 +365,8 @@ passphrase_cb (void *hook, const char *uid_hint,
                              int prev_was_bad, int fd){
    char phrase[103];
 
-   // TODO: file read and input password
    if (bool_path) {
-      strncpy(phrase, "password", strlen("password"));
+      strncpy(phrase, hook, strlen(hook));
       strcat(phrase, "\n");
       write (fd, phrase, strlen(phrase));
    }
@@ -382,9 +379,9 @@ passphrase_cb (void *hook, const char *uid_hint,
 	Register password 
 	passphrase_cb setting
 */
-void passphrase_gpgme(gpgme_ctx_t ctx){
+void passphrase_gpgme(gpgme_ctx_t ctx,char* password){
 
-	gpgme_set_passphrase_cb(ctx, passphrase_cb, NULL);
+	gpgme_set_passphrase_cb(ctx, passphrase_cb, password);
 }
 
 
@@ -423,6 +420,10 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
         //create random number to auth
         rand_number = gen_rand_num();
 
+	/*
+		read password
+	*/
+	read_file(passPath);
 
         //allocation dec/enc data
         buffer = (unsigned char*)malloc(4096);
@@ -442,11 +443,12 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
         init_gpgme(&ctx);
 	gpgme_data_new(&recv_buf);
 
-
+	
+	
         /*
 		setting password of the private key
 	*/
-        gpgme_set_passphrase_cb(ctx, passphrase_cb, NULL);
+        gpgme_set_passphrase_cb(ctx, passphrase_cb, g_password);
 
         /*
 		prepare of the buffer to using
@@ -506,7 +508,7 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
         //encrypted data copy from memory
         err=gpgme_data_new_from_mem(&recv_buf,buffer,strlen(buffer),1);
 
-        printf("\n\n#########################-Encrytption Data by server public###########################\n\n%s\n\
+        printf("\n\n#########################-Encrytption Data by server public###########################\n%s\n\
 #######################################################################\n\n",buffer);
 
 
@@ -527,7 +529,31 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
         }
         printf("\n################################################################################\n");	
 
-	
+
+
+	/*
+		cmp origin rand number and recv data
+	*/
+
+	if(confirm_randnum(rand_number, buffer)){
+		memset(buffer, 0x00, 4096);
+        	nbytes = aio_recv(sock,buffer, 4096);
+			
+		/*recv success Msg return 1*/
+		if(!strcmp(buffer,successMsg))
+			return 1;
+
+		/*not matching success Msg*/
+		else
+			return -1;
+		
+		
+	}
+	else {
+		/*not correct decrytion number*/
+		return -2;
+	}	
+		
 }
 
 
@@ -655,3 +681,43 @@ recvMsgUntil(int sock, const char* regex,void* buf, size_t n){
 	    return -1;
 	}	
 }
+
+int confirm_randnum(unsigned char *org, unsigned char *cmp){
+	
+	int index = 0;
+	int count = 0;
+
+	for(index < 0 ; index < 128; index++){
+		if(org[index] == cmp[index])
+			count++;
+	}
+
+	if(count == 128)
+		return 1;
+	else
+		return 0;
+}
+
+void read_file(const char* filename)
+{
+
+        FILE *fd = 0 ;
+        int size = 0 ;
+        fd = fopen(filename, "r");
+
+	if(fd == 0){	
+		perror("read error");
+		return;
+	}
+        fseek(fd, 0, SEEK_END);
+        size = ftell(fd);
+        fseek(fd, 0, SEEK_SET);
+
+        fread(g_password, 1 , size, fd);
+
+        fclose(fd);
+	
+//	g_password[size+1]='\x00';
+
+}
+
