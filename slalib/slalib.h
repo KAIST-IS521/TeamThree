@@ -29,6 +29,7 @@ passphrase_cb(void *opaque, const char *uid_hint, const char *passphrase_info,
               int last_was_bad, int fd);
 
 
+
 //SLA Functions
 ssize_t recvMsgUntil(int sock, const char* regex,void* buf, size_t n);
 int handshake(int sock, const char* ID, const char* privKeyPath, const char* passPath, const char* successMsg);
