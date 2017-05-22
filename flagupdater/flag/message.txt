@@ -1,0 +1,5 @@
+{
+  "signer" : "TA's ID",
+  "newflag": "1234567890ABCDEF",
+  "signature" : "<base64 encoded string>"
+}
