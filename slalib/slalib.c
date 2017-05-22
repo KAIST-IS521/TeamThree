@@ -121,53 +121,52 @@ int openTCPSock(char *IP, unsigned short port) {
 
     if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {// socket
-        printf("%s : Can't open stream socket\n", __FUNCTION__);
+        printf("%s : Failed to open socket\n", __FUNCTION__);
         return -1; // FIXME - Add meaningful return value
     }
 
     // set up addr
     memset(&addr, 0x00, sizeof(addr));
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = inet_addr(IP);
-    addr.sin_port = port;
-    
-    // bind the socket to the addr
-    if (bind(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) <0)
-    {
-        printf("%s : Can't bind local address.\n", __FUNCTION__);
+    addr.sin_port = htons(port);
+
+    if(inet_pton(AF_INET, IP, &addr.sin_addr) < 0){
+        printf("%s: Failed in inet_pton()\n", __FUNCTION__);
         return -2; // FIXME - Add meaningful return value
+    } 
+    
+    // connect
+    if (connect(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) <0)
+    {
+        printf("%s : Failed in connect()\n", __FUNCTION__);
+        return -3; // FIXME - Add meaningful return value
     }
      
     // return the socket handle   
     return sock_fd;
 }
 
-
 int openUDPSock(char *IP, unsigned short port){
-    int sock_fd;
-    struct sockaddr_in addr;
-
-    if((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-    {// socket
-        printf("%s : Can't open stream socket\n", __FUNCTION__);
-        return -1; // FIXME - Add meaningful return value
-    }
-
-    // set up addr
-    memset(&addr, 0x00, sizeof(addr));
+   if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+   {// socket
+       printf("Server : Can't open stream socket\n");
+       exit(0);
+   }
+   
+    /* servAddr init */
+    memset(&server_addr, 0x00, sizeof(server_addr));
+    /* servAddr IP and Port */
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = inet_addr(IP);
     server_addr.sin_port = port;
-   
-    // bind the socket to the addr 
-    if(bind(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) <0)
-    {
-        printf("%s : Can't bind local address.\n", __FUNCTION__);
-        return -2; // FIXME - Add meaningful return value
-    }
  
-    // return the socket handle 
-    return sock_fd;   
+    if(bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) <0)
+    {
+        printf("Server : Can't bind local address.\n");
+        exit(0);
+    }
+   
+    return 0;   
 }
 
 void closeSock(int sock)
