@@ -1,37 +1,11 @@
 <html>
 <head>
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
-
-      function drawChart() {
-
-        {{data|safe}}
-
-
-        var options = {
-          chart: {
-            title: 'Box Office Earnings in First Two Weeks of Opening',
-            subtitle: 'in millions of dollars (USD)'
-          },
-          width: 1200,
-          height: 675,
-          axes: {
-            x: {
-              0: {side: 'top'}
-            }
-          },
-          interpolateNulls: true
-        };
-
-        var chart = new google.visualization.LineChart(document.getElementById('linechart'));
-        chart.draw(data, options);
-
-      }
-  </script>
+    <title>Service Status</title>
+    <h1>Chart</h1>
+    <script type="text/javascript" src="./svg.jquery.js"></script>
+    <script type="text/javascript" src="./pygal-tooltips.js"></script>
 </head>
 <body>
-  <div id="linechart"></div>
+    {{ body|safe }}
 </body>
 </html>

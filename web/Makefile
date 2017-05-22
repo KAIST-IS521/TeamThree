@@ -9,3 +9,4 @@ packages:
 	sudo -H pip -q install Flask
 	sudo -H pip -q install flask-login
 	sudo -H pip -q install flask-session
+	sudo -H pip -q install pygal

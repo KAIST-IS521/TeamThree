@@ -1,6 +1,8 @@
 import flask
 from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
 from flask_session import Session
+import pygal
+from pygal.style import DarkSolarizedStyle
 import time
 import random
 import gnupg
@@ -15,38 +17,11 @@ try:
 except TypeError:
     gpg = gnupg.GPG(homedir=homegpgdir)
 
-def MakeData(dataName, serviceName, dataList):
-    data = '''
-      var %(DATA)s = new google.visualization.DataTable();
-      %(DATA)s.addColumn('timeofday', 'time');
-      %(DATA)s.addColumn('number', '%(SERVICE)s');
-      %(DATA)s.addRows([''' % {'DATA':dataName, 'SERVICE':serviceName}
-
-    for item in dataList[:-1]:
-        data += '[%s, %s], ' % (item[0], item[1])
-    data += '[%s, %s] ]);\n' % (dataList[-1][0], dataList[-1][1])
-
-    return data
-
-def MakeJoinData(result, target1, target2, num):
-    return "var %s = google.visualization.data.join(%s, %s, 'full', [[0, 0]], [%s], [1]);\n" %(result, target1, target2, ''.join(str(i + 1) + ',' for i in range(num-1)) + str(num))
-
-def MakeGraphData(services):
-    data = ''
-    if len(services) == 1:
-        data += makeData('data', services[0], services[services[0]])
-    else:
-        for idx, item in enumerate(services):
-            data += MakeData('data' + str(idx), item, services[item])
-        prev = 'data0'
-        for idx in range(len(services) - 1):
-            if idx == len(services) - 2:
-                data += MakeJoinData('data', prev, 'data' + str(idx+1), idx+1)
-            else:
-                data += MakeJoinData('JD' + str(idx), prev, 'data' + str(idx+1), idx+1)
-                prev = 'JD' + str(idx)
-
-    return data
+#####################################################
+# Need to change with information of server gpg key #
+#####################################################
+KEYID='XXXXXXXXXXXXXXXX'
+PASSPHRASE='server-key-passphrase'
 
 # index page
 # login O - redirect to log upload page
@@ -65,6 +40,8 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if flask.request.method == 'POST':
+        global KEYID
+        global PASSPHRASE
         githubID = flask.request.form['id']
         keypath = './pub/' + githubID + '.pub'
 
@@ -75,7 +52,12 @@ def login():
         challenge = str(random.getrandbits(256))
         flask.session['id'] = githubID
         flask.session['challenge'] = challenge
-        flask.session['encChallenge'] = str(gpg.encrypt(challenge, pubkey.fingerprints[0]))
+        try:
+            challenge = str(gpg.sign(challenge, keyid=KEYID, passphrase=PASSPHRASE))
+        except:
+            challenge = str(gpg.sign(challenge, default_key=KEYID, passphrase=PASSPHRASE))
+        challenge = str(gpg.encrypt(challenge, pubkey.fingerprints[0]))
+        flask.session['encChallenge'] = challenge
         return flask.redirect('/auth')
 
     return flask.render_template('login.html')
@@ -91,10 +73,10 @@ def auth():
 
     # verify challenge
     if flask.request.method == 'POST':
+        global PASSPHRASE
         userChallenge = flask.request.form['challenge']
-        # TODO: input correct passpghrase
-        decrypt_data = gpg.decrypt(userChallenge, passphrase='server-pub-key-passphrase')
-        if str(decrypt_data) == challenge:
+        decrypt_data = gpg.decrypt(userChallenge, passphrase=PASSPHRASE)
+        if str(decrypt_data).strip() == challenge:
             user = User(githubID, challenge)
             login_user(user)
             flask.session['login'] = True
@@ -113,20 +95,20 @@ def upload_file():
             flash('No file part')
             return flask.redirect(request.url)
 
-        services = {}
-
+        labels = []
+        values = []
+        service = None
         file = flask.request.files['file']
         for data in file.read().split('\n'):
             if data == '': continue
             items = data.split(',')
-            HMS = time.strftime("[%H, %M, %S]", time.localtime(int(items[0])))
-            service = items[1].strip() + ':' + items[2].strip()
-            status = 1 if items[3].find('up') != -1 else 0
-            if not services.has_key(service):
-                services[service] = []
-            services[service].append((HMS, status))
-        data = MakeGraphData(services)
-        return flask.render_template('chart.html', data=data)
+            if not service : service = items[1] + ":" + items[2]
+            labels.append(time.strftime("%H:%M:%S", time.localtime(int(items[0]))))
+            values.append(1 if items[3].find('up') != -1 else 0)
+        status_chart = pygal.Line(width=1200, height=675, explicit_size=True, title='Service Status', style=DarkSolarizedStyle, x_label_rotation=20)
+        status_chart.x_labels = labels
+        status_chart.add(service, values)
+        return flask.render_template('chart2.html', body=status_chart.render())
 
     return flask.render_template('upload.html')
 
