@@ -116,49 +116,58 @@ int server_fd, client_fd;
 int len, msg_size, clntLen, recvLen;
 
 int openTCPSock(char *IP, unsigned short port) {
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    int sock_fd;
+    struct sockaddr_in addr;
+
+    if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {// socket
-        printf("Server : Can't open stream socket\n");
-        exit(0);
+        printf("%s : Can't open stream socket\n", __FUNCTION__);
+        return -1; // FIXME - Add meaningful return value
     }
-    memset(&server_addr, 0x00, sizeof(server_addr));
-    //server_Addr init
+
+    // set up addr
+    memset(&addr, 0x00, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = inet_addr(IP);
+    addr.sin_port = port;
     
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr(IP);
-    server_addr.sin_port = port;
-    
-    if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) <0)
+    // bind the socket to the addr
+    if (bind(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) <0)
     {
-        printf("Server : Can't bind local address.\n");
-        exit(0);
+        printf("%s : Can't bind local address.\n", __FUNCTION__);
+        return -2; // FIXME - Add meaningful return value
     }
-        
-    return 0;
+     
+    // return the socket handle   
+    return sock_fd;
 }
 
 
 int openUDPSock(char *IP, unsigned short port){
-    if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    int sock_fd;
+    struct sockaddr_in addr;
+
+    if((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {// socket
-        printf("Server : Can't open stream socket\n");
-        exit(0);
+        printf("%s : Can't open stream socket\n", __FUNCTION__);
+        return -1; // FIXME - Add meaningful return value
     }
-    /* servAddr init */
-    memset(&server_addr, 0x00, sizeof(server_addr));
-    /* servAddr IP and Port */
+
+    // set up addr
+    memset(&addr, 0x00, sizeof(addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = inet_addr(IP);
     server_addr.sin_port = port;
-    
- 
-    if(bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) <0)
+   
+    // bind the socket to the addr 
+    if(bind(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) <0)
     {
-        printf("Server : Can't bind local address.\n");
-        exit(0);
+        printf("%s : Can't bind local address.\n", __FUNCTION__);
+        return -2; // FIXME - Add meaningful return value
     }
-  
-    return 0;   
+ 
+    // return the socket handle 
+    return sock_fd;   
 }
 
 void closeSock(int sock)
@@ -437,14 +446,16 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
                 bool_path = 0;
         }
 
+#if 0
         //create random number to auth
         rand_number = gen_rand_num();
-
+#endif // FIXME - SLA checker does not generate random number
 	/*
 		read password
 	*/
 	read_file(passPath);
 
+#if 0
         //allocation dec/enc data
         buffer = (unsigned char*)malloc(4096);
 
@@ -456,7 +467,7 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
 
         }
         printf("\n###############################################################\n");
-
+#endif // FIXME - SLA checker does not generate random number
         /*
 		init to gpgme
 	*/
