@@ -13,6 +13,8 @@ OBJS = $(SRCS:.c=.o)
 
 .PHONY: all
 all: ${TARGET_LIB}
+	sudo apt-get install libgpgme11-dev
+	sudo apt-get install libssl-dev
 
 $(TARGET_LIB): $(OBJS)
 	$(CC) ${LDFLAGS} -o $@ $^
