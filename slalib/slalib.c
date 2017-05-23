@@ -11,6 +11,7 @@
 #include <gpgme.h>
 #include <locale.h>
 #include <errno.h>
+#include "slalib.h"
 
 ssize_t
 aio_send(int sock, void* buf, size_t n);
