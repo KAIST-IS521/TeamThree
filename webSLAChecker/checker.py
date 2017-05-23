@@ -5,11 +5,15 @@ import os
 import socket
 import sys
 
-# server keyid
-KEYID='XXXXXXXXXXXXXXXX'
-# client key information for authentication
-GITHUB_ID='your-github-id'
-PASSPHRASE='client-passphrase'
+##################################################
+# Add pgp-key-id of target server in config file #
+##################################################
+KEYID='' # first line of config file
+#################################################################
+# Add github id and pgp-key passphrase of client in config file #
+#################################################################
+GITHUB_ID='' # second line of config file
+PASSPHRASE='' # third line of config file
 
 URL=''
 SESSION=''
@@ -39,7 +43,7 @@ def HTTP_send(url, headers=[], data=None):
     except socket.timeout, e:
         # For Python 2.7
         exit(1)
- 
+
 def session_test():
     global URL
     global SESSION
@@ -140,6 +144,11 @@ if __name__ == "__main__":
         print "Usage: python checker.py [IP] [PORT]"
         exit(0)
     URL = 'http://' + sys.argv[1] + ':' + sys.argv[2]
+
+    lines = open('config').read().split('\n')
+    KEYID = lines[0][:lines[0].find('#')].strip()
+    GITHUB_ID = lines[1][:lines[1].find('#')].strip()
+    PASSPHRASE = lines[2][:lines[2].find('#')].strip()
 
     if fake_authentication() == False:
         exit(1)

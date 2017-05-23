@@ -1,0 +1,3 @@
+XXXXXXXXXXXXXXXX # pgp KEYID of target server
+github_id # github id of client
+passphrase # passphrase of client pgp key
