@@ -9,11 +9,13 @@ if __debug__:
     FLAG_PATH = './sla.flag'
     TT_KEY_PATH = './TTprivate.key'
     TA_DIR_PATH = './TAKey'
+    ADDR, PORT = '', 4242
 else:
+    #TODO: Specify values after server configure done
     FLAG_PATH = '/var/www/sla.flag'
     TEAM_PATH = None
     TA_PATH   = None
-    #TODO: Specify key_paths
+    ADDR, PORT = '', 42
 
 class FlagUpdater:
     def __init__(self, selfKey, passphrase, peerKeys = dict()):
