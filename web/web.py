@@ -20,8 +20,8 @@ except TypeError:
 ####################################################
 # Add information of server PGP key in config file #
 ####################################################
-KEYID=''
-PASSPHRASE=''
+KEYID='' # first line of config file
+PASSPHRASE='' # second line of config file
 
 # index page
 # login O - redirect to log upload page
@@ -150,8 +150,8 @@ class User(UserMixin):
 
 if __name__ == '__main__':
     lines=open('config').read().split('\n')
-    KEYID = lines[0][:lines[0].find('#')].strip()
-    PASSPHRASE = lines[1][:lines[1].find('#')].strip()
+    KEYID = lines[0].strip()
+    PASSPHRASE = lines[1].strip()
     app.secret_key = ''.join(chr(random.randrange(0, 256)) for i in range(32))
     app.config['SESSION_TYPE'] = 'filesystem'
     login_manager.init_app(app)
