@@ -17,11 +17,11 @@ try:
 except TypeError:
     gpg = gnupg.GPG(homedir=homegpgdir)
 
-#####################################################
-# Need to change with information of server gpg key #
-#####################################################
-KEYID='XXXXXXXXXXXXXXXX'
-PASSPHRASE='server-key-passphrase'
+####################################################
+# Add information of server PGP key in config file #
+####################################################
+KEYID=''
+PASSPHRASE=''
 
 # index page
 # login O - redirect to log upload page
@@ -149,6 +149,9 @@ class User(UserMixin):
         return "%s/%s" % (self.name, self.password)
 
 if __name__ == '__main__':
+    lines=open('config').read().split('\n')
+    KEYID = lines[0][:lines[0].find('#')].strip()
+    PASSPHRASE = lines[1][:lines[1].find('#')].strip()
     app.secret_key = ''.join(chr(random.randrange(0, 256)) for i in range(32))
     app.config['SESSION_TYPE'] = 'filesystem'
     login_manager.init_app(app)
