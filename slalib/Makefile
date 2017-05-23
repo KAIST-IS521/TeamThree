@@ -7,12 +7,13 @@ CFLAGS = -fPIC -Wall -Wextra -O2 -g -lrt -D_FILE_OFFSET_BITS=64 `gpgme-config --
 LDFLAGS = -shared  # linking flags
 RM = rm -f  # rm command
 TARGET_LIB = libsla.so # target lib
-
 SRCS = slalib.c # source files
 OBJS = $(SRCS:.c=.o)
 
 .PHONY: all
-all: ${TARGET_LIB}
+all: ${TARGET_LIB} $gpgme
+
+$gpgme:
 	sudo apt-get install libgpgme11-dev
 	sudo apt-get install libssl-dev
 	wget ftp://ftp.gnupg.org/gcrypt/libassuan/libassuan-2.4.3.tar.bz2
