@@ -130,6 +130,10 @@ def load_user(userid):
     else:
         return None
 
+@app.route("/<page>")
+def static_page(page):
+    return open('static/' + page).read()
+
 class User(UserMixin):
     def __init__(self, githubID, challenge):
         self.name = githubID
