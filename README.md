@@ -10,7 +10,7 @@ make
 # How to Use
 
 ## SLA checker library
-You can get libsla.so in ```./sllib```
+You can get ```libsla.so``` in ```./sllib```
 
 ## DNS SLA checker
 ```
