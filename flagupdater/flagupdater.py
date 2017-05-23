@@ -2,7 +2,9 @@ import gnupg
 import base64
 import json
 import os
+import daemon
 from tempfile import NamedTemporaryFile
+from SocketServer import ThreadingTCPServer, StreamRequestHandler
 
 mkStream = gnupg._util._make_binary_stream
 if __debug__:
@@ -59,3 +61,17 @@ class FlagUpdater:
         if self._verify(signer, newflag, sign):
             with open(FLAG_PATH, 'wb') as f:
                 f.write(newflag)
+
+class myFlagUpdateHandler(StreamRequestHandler):
+    def handle(self):
+        req = self.rfile.readline()
+        UPDATER.handle_update_request(req)
+
+if __name__ == '__main__':
+    #TODO: read TAkey dir and make proper dictionary for `peerKeys`
+    UPDATER = FlagUpdater(TT_KEY_PATH, '')
+    ThreadingTCPServer.allow_reuse_address = True
+
+    with daemon.DaemonContext():
+        server = ThreadingTCPServer((ADDR, PORT), myFlagUpdateHandler)
+        server.serve_forever()
