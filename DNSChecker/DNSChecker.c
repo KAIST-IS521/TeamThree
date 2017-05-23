@@ -245,7 +245,7 @@ void ngethostbyname(unsigned char *host, int query_type, int s, char *ip, unsign
     if(recvMsgFrom(s,(char*)buf , 65536 , 0 , (struct sockaddr*)&dest , (socklen_t*)&i ) < 0)
     {
         printf("Error: recvfrom failed");
-	exit(2);
+	exit(1);
     }
     printf("Done");
 
