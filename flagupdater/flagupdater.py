@@ -10,7 +10,7 @@ mkStream = gnupg._util._make_binary_stream
 if __debug__:
     FLAG_PATH = './sla.flag'
     TT_KEY_PATH = './TTprivate.key'
-    TA_DIR_PATH = './TAKey'
+    TA_DIR_PATH = './TAkey'
     ADDR, PORT = '', 4242
 else:
     #TODO: Specify values after server configure done
