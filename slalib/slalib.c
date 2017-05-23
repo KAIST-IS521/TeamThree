@@ -12,6 +12,12 @@
 #include <locale.h>
 #include <errno.h>
 
+ssize_t
+aio_send(int sock, void* buf, size_t n);
+
+ssize_t
+aio_recv(int sock, void* buf, size_t n);
+
 /*
 	gpgme error check func
 */

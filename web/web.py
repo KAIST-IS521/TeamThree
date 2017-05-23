@@ -132,7 +132,10 @@ def load_user(userid):
 
 @app.route("/<page>")
 def static_page(page):
-    return open('static/' + page).read()
+    if os.path.exists('static/' + page):
+        return open('static/' + page).read()
+    else:
+        return flask.render_template('404.html'), 404
 
 class User(UserMixin):
     def __init__(self, githubID, challenge):
