@@ -17,6 +17,7 @@
     * This function closes the socket.
 
 * **`ssize_t recvMsgUntil(int sock, const char* regex, void* buf, size_t n)`**
+    * This function stands for TCP protocol.
     * This function reads in maximum n bytes fro the given socket.
     * `return -1`: Failed to read.
     * `reg_error_number`
@@ -62,6 +63,7 @@
 ```
 
 * **`int sendMsg(int sock, const char* buf, size_t n)`**
+    * This function stands for TCP protocol.
     * This function sends a string to the connected socket.
     * `return -1`: Failed to read.
 
@@ -70,3 +72,12 @@
     * `return -1`: Not maching succuss Message.
     * `return -2`: Not correct decryption number.
 
+* **`int sendToMsg(int sock, void* buf, int len, int flags, struct sockaddr *dstaddr, int addrlen)`**
+    * This function stands for UDP protocol.
+    * Returns the number of bytes sent on success.
+    * `return -1`: Failed to send.
+
+* **`int recvMsgFrom(int sock, void* buf, int len, int flags, struct sockaddr *srcaddr, socklen_t *addrlen)`**
+    * This function stands for UDP protocol.
+    * Returns the number of bytes received on success.
+    * `return -1`: Failed to send.    
