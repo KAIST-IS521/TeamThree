@@ -78,6 +78,8 @@ def solve_challenge(challenge):
     global KEYID
     global gpg
     dec = str(gpg.decrypt(challenge, passphrase=PASSPHRASE))
+    if dec == '':
+        exit(1)
     random = dec.split('\n')[3]
     pubkeyAscii = gpg.export_keys(KEYID)
     pubkey = gpg.import_keys(pubkeyAscii)
@@ -146,9 +148,9 @@ if __name__ == "__main__":
     URL = 'http://' + sys.argv[1] + ':' + sys.argv[2]
 
     lines = open('config').read().split('\n')
-    KEYID = lines[0][:lines[0].find('#')].strip()
-    GITHUB_ID = lines[1][:lines[1].find('#')].strip()
-    PASSPHRASE = lines[2][:lines[2].find('#')].strip()
+    KEYID = lines[0].strip()
+    GITHUB_ID = lines[1].strip()
+    PASSPHRASE = lines[2].strip()
 
     if fake_authentication() == False:
         exit(1)
