@@ -1,4 +1,3 @@
-#include <openssl/rsa.h>
 #include <arpa/inet.h>
 #include <aio.h>
 #include <stdio.h>
