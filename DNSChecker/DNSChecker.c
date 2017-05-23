@@ -318,8 +318,9 @@ void ngethostbyname(unsigned char *host, int query_type, int s, char *ip, unsign
         if(ntohs(answers[i].resource->type)==5) 
         {
             //Canonical name for an alias
-            printf("has alias name : %s\n",answers[i].rdata);
-	    exit(1);
+	    printf("has alias name : %s\n",answers[i].rdata);
+	    if(i == (ntohs(dns->ans_count) -1))
+	        exit(1);   //if it has only canonical name
 	}
     }
     return;
@@ -334,6 +335,7 @@ int main(int argc, char** argv)
     char ip[20];
     unsigned char host[40];
     FILE *expect = NULL;
+    struct timeval tv;
 
     if(argc != 3)
     {
@@ -367,7 +369,12 @@ int main(int argc, char** argv)
     socket = openUDPSock(argv[1], port);  
     if(socket < 0)
         exit(2);
-    
+    tv.tv_sec = 5; //5secs timeout
+    tv.tv_usec = 0;
+
+    //for the prevent read blocking
+    setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
     while(!feof(expect))
     {
         fscanf(expect, "%[^,], %s\n", host, ip);
