@@ -37,4 +37,5 @@ ssize_t recvMsgUntil(int sock, const char* regex, void* buf, size_t n);
 void closeSock(int sock);
 int openUDPSock(char *IP, unsigned short port);
 int openTCPSock(char *IP, unsigned short port);
+int sendMsg(int sock, void* buf, size_t n);
 
