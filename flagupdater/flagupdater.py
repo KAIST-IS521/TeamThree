@@ -7,8 +7,8 @@ from tempfile import NamedTemporaryFile
 mkStream = gnupg._util._make_binary_stream
 if __debug__:
     FLAG_PATH = './sla.flag'
-    TEAM_PATH = './TeamKey'
-    TA_PATH   = './TAKey'
+    TT_KEY_PATH = './TTprivate.key'
+    TA_DIR_PATH = './TAKey'
 else:
     FLAG_PATH = '/var/www/sla.flag'
     TEAM_PATH = None
