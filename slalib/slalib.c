@@ -590,6 +590,28 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
 		
 }
 
+int 
+sendMsg(int sock, void* buf, size_t n){
+
+        int ret , len; 
+        struct aiocb cb;
+
+        memset(&cb , 0x00, sizeof(struct aiocb));
+        set_aiocb(&cb, sock, buf, n);
+
+        ret = aio_write(&cb);
+        if (ret < 0) perror("aio_read");
+        
+        while ( aio_error( &cb ) == EINPROGRESS ){}
+
+        /* got ret bytes on the read */
+	if ((len = aio_return(&cb)) > 0) {
+              return len;
+	} else {
+          /* read failed, consult errno */
+          return -1;
+      }       
+}
 
 ssize_t 
 aio_send(int sock, void* buf, size_t n){
