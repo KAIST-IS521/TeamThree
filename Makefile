@@ -1,16 +1,16 @@
-BUILDDIR = build   
-subdir = DNSChecker web slalib webSLAChecker   #The name of the subdirectory you want to build
+BUILDDIR = build
+subdir = DNSChecker web slalib Logger webSLAChecker   #The name of the subdirectory you want to build
 
-all: $(BUILDDIR) $compile 
+all: $(BUILDDIR) $compile
 
 $(BUILDDIR):
 	@echo "Building system..."
 	mkdir -p $@
 
-$compile:	
+$compile:
 	$(foreach dir, $(subdir), cd $(dir) && make; cd ..;)
+
 clean:
 	rm -rf $(BUILDDIR)
-
 
 .PHONY: all clean
