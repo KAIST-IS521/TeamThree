@@ -32,9 +32,10 @@ passphrase_cb(void *opaque, const char *uid_hint, const char *passphrase_info,
 
 //SLA Functions
 ssize_t recvMsgUntil(int sock, const char* regex,void* buf, size_t n);
+int sendMsg(int sock, const char* buf, size_t n);
 int handshake(int sock, const char* ID, const char* privKeyPath, const char* passPath, const char* successMsg);
-ssize_t recvMsgUntil(int sock, const char* regex, void* buf, size_t n);
 void closeSock(int sock);
 int openUDPSock(char *IP, unsigned short port);
 int openTCPSock(char *IP, unsigned short port);
+
 
