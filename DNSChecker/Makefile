@@ -8,6 +8,7 @@ BUILDDIR = ../build
 all: $(BUILDDIR) $(BUILDDIR)/DNSChecker
 
 $(BUILDDIR)/DNSChecker: DNSChecker.c  $(BUILDDIR)
+	cp libsla.so ../build 
 	$(CC) $(LIBPATH) $(CFLAGS) $(LDFLAGS) -o$@ $< $(LIBS)
 
 clean:
