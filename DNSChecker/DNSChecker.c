@@ -389,6 +389,7 @@ int main(int argc, char** argv)
         ngethostbyname(host, T_A, socket, ip, port, argv[1]);
     }
     fclose(expect);
+    closeSock(socket);
     exit(0);
     return 0;
 }
