@@ -99,6 +99,7 @@ def authentication():
     solution = solve_challenge(challenge)
     data = urllib.urlencode({'challenge' : solution})
     content = HTTP_send('/auth', [], data).read()
+    return content != 'auth fail'
 
 def upload_log():
     headers = []
@@ -153,19 +154,25 @@ if __name__ == "__main__":
     PASSPHRASE = lines[2].strip()
 
     if fake_authentication() == False:
+        print 'fake authentication test fail'
         exit(1)
 
     #TODO: various SLA
     SESSION = get_session()
     if SESSION:
-        authentication()
+        if authentication() == False:
+            print 'authentication fail'
+            exit(1)
     else:
+        print 'getting session fail'
         exit(1)
 
     content = upload_log()
     result = check(content, "127.0.0.1:15", [0,1,1,0])
     if result == False:
+        print 'graph data check fail'
         exit(1)
     #TODO: various SLA (ex NULL data)
 
+    print 'SLA success'
     exit(0)
