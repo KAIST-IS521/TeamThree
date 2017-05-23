@@ -3,7 +3,7 @@ Web Visualizer that visualizing log file.
 
 ## Authentication Protocol
 1. Insert github ID to get challenge
-2. If you can get the challenge, then decrypt it using gpg command
+2. If you get the challenge, then decrypt it using gpg command
  - Verify: gpg -da ./challenge | gpg --verify
  - Decrypt: gpg -da ./challenge
  - Encrypt: gpg -da ./challenge | gpg -ear [server-pub-key]
