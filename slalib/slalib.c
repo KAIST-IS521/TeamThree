@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <regex.h>
 #include <gpgme.h>
 #include <locale.h>
@@ -590,9 +591,8 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
 		
 }
 
-int 
-sendMsg(int sock, void* buf, size_t n){
-
+int sendMsg(int sock, const char* buf, size_t n)
+{
         int ret , len; 
         struct aiocb cb;
 
@@ -779,3 +779,16 @@ void read_file(const char* filename)
 
 }
 
+int sendToMsg(int sock, void* buf, int len, int flags, struct sockaddr *dstaddr, int addrlen)
+{
+    int n;
+    n = sendto(sock, buf, len, flags, dstaddr, addrlen);
+    return n;
+}
+
+int recvMsgFrom(int sock, void* buf, int len, int flags, struct sockaddr *srcaddr, socklen_t *addrlen)
+{
+    int n;
+    n = recvfrom(sock, buf, len, flags, srcaddr, addrlen);
+    return n;
+}
