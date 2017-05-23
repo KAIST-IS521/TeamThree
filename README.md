@@ -18,4 +18,4 @@ cd build
 ./DNSChecker <name server ip address> <port>
 ```
 ## SLA Library
-You can see the description of SLA library[slalib](/slalib/README.md)
+You can see the description of SLA library - [slalib](/slalib/README.md)
