@@ -452,16 +452,13 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
                 bool_path = 0;
         }
 
-#if 0
         //create random number to auth
         rand_number = gen_rand_num();
-#endif // FIXME - SLA checker does not generate random number
 	/*
 		read password
 	*/
 	read_file(passPath);
 
-#if 0
         //allocation dec/enc data
         buffer = (unsigned char*)malloc(4096);
 
@@ -473,7 +470,6 @@ int handshake(int sock, const char* ID, const char* privKeyPath, const char* pas
 
         }
         printf("\n###############################################################\n");
-#endif // FIXME - SLA checker does not generate random number
         /*
 		init to gpgme
 	*/
