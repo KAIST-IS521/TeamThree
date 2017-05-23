@@ -149,7 +149,7 @@ int openUDPSock(char *IP, unsigned short port){
     int sock_fd;
     struct sockaddr_in addr;
 
-    if ((sock_fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+    if ((sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {// socket
         printf("%s : Failed to open socket\n", __FUNCTION__);
         return -1; // FIXME - Add meaningful return value
@@ -165,12 +165,6 @@ int openUDPSock(char *IP, unsigned short port){
         return -2; // FIXME - Add meaningful return value
     } 
     
-    // connect
-    if (connect(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) <0)
-    {
-        printf("%s : Failed in connect()\n", __FUNCTION__);
-        return -3; // FIXME - Add meaningful return value
-    }
      
     // return the socket handle   
     return sock_fd;
