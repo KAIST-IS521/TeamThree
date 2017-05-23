@@ -1,2 +1,10 @@
 build
 *.swp
+*tar.bz*
+*.d
+*.o
+*.so
+libgpg-error-1.27
+libassuan-2.4.3
+gpgme-1.9.0
+
