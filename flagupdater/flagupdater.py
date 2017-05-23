@@ -10,13 +10,15 @@ mkStream = gnupg._util._make_binary_stream
 if __debug__:
     FLAG_PATH = './sla.flag'
     TT_KEY_PATH = './TTprivate.key'
+    TT_PAP_PATH = './TTprivate.pass'
     TA_DIR_PATH = './TAkey'
     ADDR, PORT = '', 4242
 else:
     #TODO: Specify values after server configure done
     FLAG_PATH = '/var/www/sla.flag'
-    TEAM_PATH = None
-    TA_PATH   = None
+    TT_KEY_PATH = None
+    TT_PAP_PATH = None
+    TA_DIR_PATH = None
     ADDR, PORT = '', 42
 
 class FlagUpdater:
