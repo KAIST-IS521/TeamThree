@@ -319,6 +319,7 @@ void ngethostbyname(unsigned char *host, int query_type, int s, char *ip, unsign
         {
             //Canonical name for an alias
             printf("has alias name : %s\n",answers[i].rdata);
+	    exit(1);
 	}
     }
     return;
