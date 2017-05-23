@@ -70,8 +70,15 @@ class myFlagUpdateHandler(StreamRequestHandler):
         UPDATER.handle_update_request(req)
 
 if __name__ == '__main__':
-    #TODO: read TAkey dir and make proper dictionary for `peerKeys`
-    UPDATER = FlagUpdater(TT_KEY_PATH, '')
+    TA_list = ['DaramG', 'jchoi2022', 'soomin-kim']
+    peerKeys = dict()
+    for name in TA_list:
+        peerKeys[name] = '{}/{}.pub'.format(TA_DIR_PATH, name)
+
+    with open(TT_PAP_PATH, 'rb') as f:
+        passphrase = f.read()
+
+    UPDATER = FlagUpdater(TT_KEY_PATH, passphrase, peerKeys)
     ThreadingTCPServer.allow_reuse_address = True
 
     with daemon.DaemonContext():
