@@ -13,7 +13,7 @@
 #include <sys/socket.h>    //you know what this is for
 #include <arpa/inet.h> //inet_addr , inet_ntoa , ntohs etc
 #include <netinet/in.h>
-
+#include "slalib.h"
 
 #define T_A 1 //Ipv4 address
 #define T_NS 2 //Nameserver
@@ -112,7 +112,7 @@ void ChangetoDnsNameFormat(unsigned char* dns,unsigned char* host)
     int lock = 0 , i;
     strcat((char*)host,".");
      
-    for(i = 0 ; i < strlen((char*)host) ; i++) 
+    for(i = 0 ; i < (int)strlen((char*)host) ; i++) 
     {
         if(host[i]=='.') 
         {
@@ -184,13 +184,12 @@ u_char* ReadName(unsigned char* reader,unsigned char* buffer,int* count)
     return name;
 }
 
-void ngethostbyname(unsigned char *host, int query_type, int s, char *ip)
+void ngethostbyname(unsigned char *host, int query_type, int s, char *ip, unsigned short destPort, char* destIp)
 {
     unsigned char buf[65536],*qname,*reader;
     int i , j , stop;
-    int returnVal;
     char recevIP[20];
-    struct sockaddr_in a; //
+    struct sockaddr_in a; 
 
     struct RES_RECORD answers[20]; //the replies from the DNS server
     struct sockaddr_in dest;  //
@@ -200,11 +199,9 @@ void ngethostbyname(unsigned char *host, int query_type, int s, char *ip)
 
     printf("Resolving %s" , host);
 
-    s = socket(AF_INET , SOCK_DGRAM , IPPROTO_UDP); //
-
     dest.sin_family = AF_INET; //
-    dest.sin_port = htons(53); //
-    dest.sin_addr.s_addr = inet_addr("127.0.0.1"); //
+    dest.sin_port = htons(destPort); //
+    dest.sin_addr.s_addr = inet_addr(destIp); //
 
     //Set the DNS structure to standard queries
     dns = (struct DNS_HEADER *)&buf;
@@ -235,25 +232,17 @@ void ngethostbyname(unsigned char *host, int query_type, int s, char *ip)
     qinfo->qclass = htons(1); //its internet (lol)
 
     printf("\nSending Packet...");
-    if( sendto(s,(char*)buf,sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION),0,(struct sockaddr*)&dest,sizeof(dest)) < 0)
+    if( sendToMsg(s,(char*)buf,sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION),0,(struct sockaddr*)&dest,sizeof(dest)) < 0)
     {
-        printf("Error: sendto failed");
+        printf("Error: Can't send the DNS packet\n");
 	exit(2);
     }
     printf("Done");
     
-    /*returnVal = sendMsg(socket,(char*)buf,sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION));
-    
-    if(returnVal < 0)
-    {
-        printf("Error: Can't send the DNS packet\n");
-        exit(2);
-    }*/
-
     //Receive the answer
     i = sizeof dest;
     printf("\nReceiving answer...");
-    if(recvfrom (s,(char*)buf , 65536 , 0 , (struct sockaddr*)&dest , (socklen_t*)&i ) < 0)
+    if(recvMsgFrom(s,(char*)buf , 65536 , 0 , (struct sockaddr*)&dest , (socklen_t*)&i ) < 0)
     {
         printf("Error: recvfrom failed");
 	exit(2);
@@ -374,7 +363,7 @@ int main(int argc, char** argv)
 	exit(2);
     }
 
-    //socket = openUDPSocket(argv[1], port);  
+    socket = openUDPSock(argv[1], port);  
     if(socket < 0)
         exit(2);
     
@@ -389,7 +378,7 @@ int main(int argc, char** argv)
 	}
 	
 	//Now get the ip of hostname, A record
-        ngethostbyname(host, T_A, socket, ip);
+        ngethostbyname(host, T_A, socket, ip, port, argv[1]);
     }
     fclose(expect);
     exit(0);
