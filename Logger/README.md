@@ -6,10 +6,13 @@ Logger for sla check with sandbox.
 
 `./logger [ip addr] [port] [testcase dir] [logfile]`
 
-# List of allowed syscall
+# Sandbox
 
-This list can be updated even after `checkpoint #1` because we can
-sure what to allow when all other sla checkers are implemented.
+Following lists can be updated even after `checkpoint #1` because we can
+sure what to allow when all other sla checkers are implemented. Note that
+syscalls not in any list cannot be used.
+
+### List of allowed syscalls
 
 - arch_prctl
 - brk
@@ -49,3 +52,7 @@ sure what to allow when all other sla checkers are implemented.
 - sysinfo
 - uname
 - write
+
+### Restricted syscalls
+
+- access : always return -1
