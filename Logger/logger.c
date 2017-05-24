@@ -15,6 +15,12 @@
 // Unix timestamp
 #include <time.h>
 
+#define SYSALLOW(s) \
+    do {\
+      rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(s), 0); \
+      if (rc < 0) goto out; \
+    } while (0)
+
 void secureExec(const char* pathname, char *args[], char *envp[])
 {
     int rc = -1;
@@ -30,51 +36,44 @@ void secureExec(const char* pathname, char *args[], char *envp[])
     ctx = seccomp_init(SCMP_ACT_KILL); // kill if filtered syscall used
 
     // whitelist
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(rt_sigreturn), 0);
-    if (rc < 0) goto out;
-
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(brk), 0);
-    if (rc < 0) goto out;
-
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(mmap), 0);
-    if (rc < 0) goto out;
-
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(munmap), 0);
-    if (rc < 0) goto out;
-
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(mprotect), 0);
-    if (rc < 0) goto out;
-
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(fstat), 0);
-    if (rc < 0) goto out;
-
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(close), 0);
-    if (rc < 0) goto out;
-
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(arch_prctl), 0);
-    if (rc < 0) goto out;
-
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit), 0);
-    if (rc < 0) goto out;
-
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(exit_group), 0);
-    if (rc < 0) goto out;
-
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(open), 0);
-    if (rc < 0) goto out;
-
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0);
-    if (rc < 0) goto out;
-
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 0);
-    if (rc < 0) goto out;
-
-    rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 0);
-    /*rc = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 3,
-            SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)pathname),
-            SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)args),
-            SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)envp));*/
-    if (rc < 0) goto out;
+    SYSALLOW(arch_prctl);
+    SYSALLOW(brk);
+    SYSALLOW(close);
+    SYSALLOW(execve);
+    SYSALLOW(exit_group);
+    SYSALLOW(fstat);
+    SYSALLOW(fstat64);
+    SYSALLOW(getcwd);
+    SYSALLOW(getdents);
+    SYSALLOW(getegid);
+    SYSALLOW(geteuid);
+    SYSALLOW(getgid);
+    SYSALLOW(getrlimit);
+    SYSALLOW(getuid);
+    SYSALLOW(ioctl);
+    SYSALLOW(lseek);
+    SYSALLOW(lstat);
+    SYSALLOW(mmap);
+    SYSALLOW(mmap2);
+    SYSALLOW(mprotect);
+    SYSALLOW(munmap);
+    SYSALLOW(open);
+    SYSALLOW(read);
+    SYSALLOW(readlink);
+    SYSALLOW(recvfrom);
+    SYSALLOW(rt_sigaction);
+    SYSALLOW(rt_sigprocmask);
+    SYSALLOW(sendto);
+    SYSALLOW(set_robust_list);
+    SYSALLOW(set_thread_area);
+    SYSALLOW(set_tid_address);
+    SYSALLOW(setsockopt);
+    SYSALLOW(socket);
+    SYSALLOW(stat);
+    SYSALLOW(stat64);
+    SYSALLOW(sysinfo);
+    SYSALLOW(uname);
+    SYSALLOW(write);
 
     // make access check fail
     // We cannot kill because kernel uses it automatically for ld-preload
