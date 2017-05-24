@@ -7,6 +7,7 @@ import time
 import random
 import gnupg
 import os
+import sys
 
 login_manager = LoginManager()
 session_manager = Session()
@@ -149,6 +150,9 @@ class User(UserMixin):
         return "%s/%s" % (self.name, self.password)
 
 if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print 'Usage: python web.py [PORT]'
+        exit(1)
     lines=open('config').read().split('\n')
     KEYID = lines[0].strip()
     PASSPHRASE = lines[1].strip()
@@ -156,4 +160,4 @@ if __name__ == '__main__':
     app.config['SESSION_TYPE'] = 'filesystem'
     login_manager.init_app(app)
     session_manager.init_app(app)
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=int(sys.argv[1]))
