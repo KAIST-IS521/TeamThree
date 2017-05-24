@@ -28,3 +28,6 @@ Web Visualizer SLA Checker that check Web Visualizer state.
 
 ## Flag Updater
 Description of flag updater. [Flagupdater](/flagupdater/README.md)
+
+## Logger
+Description of logger. [Logger](/Logger/README.md)
