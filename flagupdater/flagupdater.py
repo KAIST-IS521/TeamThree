@@ -6,7 +6,6 @@ import daemon
 from tempfile import NamedTemporaryFile
 from SocketServer import ThreadingTCPServer, StreamRequestHandler
 
-mkStream = gnupg._util._make_binary_stream
 if __debug__:
     FLAG_PATH = './sla.flag'
     TT_KEY_PATH = './TTprivate.key'
@@ -36,20 +35,25 @@ class FlagUpdater:
                 self.sigMap[peer] = key.fingerprints
 
     def _verify(self, signer, newflag, sign):
-        f_data = mkStream('{}:{}'.format(signer, newflag))
+        if not signer in self.sigMap:
+            return False
+
+        data = '{}:{}'.format(signer, newflag)
 
         f_sign = NamedTemporaryFile(delete = False)
         tmpFileName = f_sign.name
         f_sign.write(sign)
         f_sign.close()
 
-        result = self.gpg.verify_file(f_data, tmpFileName,
-                                      key_id = self.sigMap[signer])
+        result = self.gpg.verify_data(tmpFileName, data)
 
         f_data.close()
         os.remove(tmpFileName)
 
-        return result
+        if result is None:
+            return False
+
+        return result.fingerprint in self.sigMap[signer]
 
     def handle_update_request(self, req):
         req = self.gpg.decrypt(req, always_trust = True,
