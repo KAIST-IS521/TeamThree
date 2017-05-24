@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <gpgme.h>
 #include <locale.h>
+#include "gpg.h"
 
 
 void init_gpgme2(gpgme_ctx_t *ctx)
