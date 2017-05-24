@@ -3,7 +3,7 @@ LIB = -lseccomp
 CC = gcc
 BUILDDIR = ../build
 
-all: $(BUILDDIR)/logger setup
+all: setup $(BUILDDIR)/logger
 
 setup:
 	sudo apt-get install libseccomp-dev
