@@ -3,13 +3,11 @@ This flag updater uses team three(network operator).
 
 ## Install
 ```
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 ## Run
 
 ```
-python flagupdater.py 
+python flagupdater.py
 ```
-
-
