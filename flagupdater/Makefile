@@ -1,6 +1,4 @@
-all: flagupdater
+all: packages
 
-flagupdater:
-	pip install -r requirement.txt
-
-.PHONY: all flagupdater
+packages:
+	sudo pip install -r requirements.txt
