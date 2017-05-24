@@ -25,3 +25,6 @@ Web Visualizer that visualizing SLA log.
 ## Web visualizer SLA Checker
 Web Visualizer SLA Checker that check Web Visualizer state.
 [webSLAChecker](/webSLAChecker)
+
+## Flag Updater
+Description of flag updater. [Flagupdater](/flagupdater/README.md)
