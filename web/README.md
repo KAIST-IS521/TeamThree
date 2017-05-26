@@ -2,12 +2,14 @@
 Web Visualizer that visualizing log file.
 
 ## Authentication Protocol
-1. Insert github ID to get challenge
-2. If you get the challenge, then decrypt it using gpg command
- - Verify: gpg -da ./challenge | gpg --verify
+1. Insert github ID to get the challenge.
+2. Web gives you the challenge, it encrypted with users' public key.
  - Decrypt: gpg -da ./challenge
- - Encrypt: gpg -da ./challenge | gpg -ear [server-pub-key]
-3. upload log file
+3. Decrypt challenge, and verify sign.
+ - Verify: gpg -da ./challenge | gpg --verify
+4. Encrypt random number and authenticate.
+ - Encrypt: echo [random_number] | gpg -ear [server-pub-key]
+5. Upload log file.
 
 ## config
 Need to setup config file
