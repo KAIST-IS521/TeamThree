@@ -190,7 +190,7 @@ int handshake(int sock, const char* ID, const char* serverFprt, const char* pass
     result = sendMsg(sock, ID, strlen(ID));
     if (result != -1)
     {
-        ret_size = recvMsgUntil(sock, "-----END PGP MESSAGE-----", challenge, 4096);
+        ret_size = recv(sock, challenge, 4096, 0);
         if (ret_size != -1)
         {
             if (debug) printf("challenge!!!\n%s\n", challenge);
@@ -203,7 +203,7 @@ int handshake(int sock, const char* ID, const char* serverFprt, const char* pass
 
             if (strcmp(signerFprt, serverFprt) == 0)
             {
-                if (debug) printf("sign validated!\n");
+                if (debug) printf("sign verified!!!\n");
                 tmp = strstr(dec, "\n\n");
                 length = strstr(tmp, "-----BEGIN PGP SIGNATURE-----") - tmp;
                 strncpy(random_number, tmp + 2, length - 3);
@@ -214,7 +214,7 @@ int handshake(int sock, const char* ID, const char* serverFprt, const char* pass
 
                 result = sendMsg(sock, enc, strlen(enc));
             }
-                else if (debug) printf("sign unvalid!\n");
+            else if (debug) printf("sign unverified!!!\n");
         }
         else if (debug) printf("recvMsgUntil fail!\n");
     }
@@ -231,22 +231,29 @@ int sendMsg(int sock, const char* buf, size_t n)
     return (int)send(sock, buf, n, 0);
 }
 
-ssize_t recvMsgUntil(int sock, const char* regex,void* buf, size_t n)
+ssize_t recvMsgUntil(int sock, const char* regex, char* buf, size_t n)
 {
-/*
     regex_t state;
-    int rc;
+    int ret;
+    char* cur = buf;
 
-    rc = regcomp(&state, regex, REG_EXTENDED);
-    if (rc != 0)
+    ret = regcomp(&state, regex, REG_EXTENDED);
+    if (ret != 0)
     {
-        return 0;
+        return -1;
     }
 
-    while 
-*/
-    return recv(sock, buf, n, 0);
-    //ret =reg_check(regex, buf);
+    while (n > 0)
+    {
+        recv(sock, cur, 1, 0);
+        cur++;
+        n--;
+        ret = regexec(&state, buf, 0, NULL, 0);
+        if (!ret)
+            break;
+    }
+
+    return cur - buf;
 }
 
 void read_file(const char* filename)
@@ -270,27 +277,3 @@ void read_file(const char* filename)
 
         fclose(fd);
 }
-
-/*
-int reg_check(const char* regex, void* buf){
-
-        regex_t state;
-        const char *pattern = regex;
-        char tmp[100];
-        int rc;
-
-        //pattern compile
-        rc = regcomp(&state, pattern, REG_EXTENDED);
-        if(rc != 0 ){
-                regerror(rc, &state, tmp, 100);
-                printf("regcomp() failed with '%s'\n", tmp);
-                return reg_error_number(rc);
-        }
-
-        //matching regex
-        int status = regexec(&state, buf, 0, NULL, 0);
-
-        return status;
-}
-*/
-
