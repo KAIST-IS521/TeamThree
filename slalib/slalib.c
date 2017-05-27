@@ -38,73 +38,73 @@ int bool_path = 1;
 char g_password[100] = {0};
 
 const char* email[] =
-{       
-        "jhong3842@gmail.com",  //jhong3842
-        "IS521_TT@kaist.ac.kr", //Team_Three
-        "m@frv.ag",             //mfaerevaag
-        "jean.cassou-mounat@insa-lyon.fr",//jcassou
-        "signal@kait.ac.kr",//KAISTGUN
-        "sbahn1992@gmail.com",//sbahn1992
-        "alinghi@kaist.ac.kr",//alinghi
-        "sangkilc@kaist.ac.kr",//sangkilc
-        "cjdhlds08@gmail.com",//asdfljh
-        "bjgwak@kaist.ac.kr",//bjgwak
-        "yunjong@kaist.ac.kr",//blukat29
-        "gksgudtjr456@gmail.com",//DaramG
-        "dinggul@kaist.ac.kr",//dinggul
-        "prious@kaist.ac.kr",//donghwan17
-        "jihyeon.yoon@kaist.ac.kr",//ggoboogy
-        "anh1026@kaist.ac.kr",//Hyeongcheol-An
-        "ian0371@gmail.com",//ian0371
-        "jettijam@gmail.com",//jaemoon-sim
-        "jangha@kaist.ac.kr",//james010kim
-        "jschoi.2022@gmail.com",//jchoi2022
-        "ohkye415@gmail.com",//JeongOhKye
-        "jmpark81@kaist.ac.kr",//jmpark81
-        "juanaevv@nate.com",//juanaevv
-        "lbh0307@gmail.com",//lbh0307
-        "jsoh921@kaist.ac.kr",//mickan921
-        "kmb1109@kaist.ac.kr",//mikkang
-        "nhkwak@kaist.ac.kr",//nohkwak
-        "pr0v3rbs@kaist.ac.kr",//pr0v3rbs
-        "su3604@kaist.ac.kr",//seongil-wi
-        "seungwonwoo@kaist.ac.kr",//seungwonwoo
-        "soomink@kaist.ac.kr"//soomin-kim
+{
+    "jhong3842@gmail.com",  //jhong3842
+    "IS521_TT@kaist.ac.kr", //Team_Three
+    "m@frv.ag",             //mfaerevaag
+    "jean.cassou-mounat@insa-lyon.fr",//jcassou
+    "signal@kait.ac.kr",//KAISTGUN
+    "sbahn1992@gmail.com",//sbahn1992
+    "alinghi@kaist.ac.kr",//alinghi
+    "sangkilc@kaist.ac.kr",//sangkilc
+    "cjdhlds08@gmail.com",//asdfljh
+    "bjgwak@kaist.ac.kr",//bjgwak
+    "yunjong@kaist.ac.kr",//blukat29
+    "gksgudtjr456@gmail.com",//DaramG
+    "dinggul@kaist.ac.kr",//dinggul
+    "prious@kaist.ac.kr",//donghwan17
+    "jihyeon.yoon@kaist.ac.kr",//ggoboogy
+    "anh1026@kaist.ac.kr",//Hyeongcheol-An
+    "ian0371@gmail.com",//ian0371
+    "jettijam@gmail.com",//jaemoon-sim
+    "jangha@kaist.ac.kr",//james010kim
+    "jschoi.2022@gmail.com",//jchoi2022
+    "ohkye415@gmail.com",//JeongOhKye
+    "jmpark81@kaist.ac.kr",//jmpark81
+    "juanaevv@nate.com",//juanaevv
+    "lbh0307@gmail.com",//lbh0307
+    "jsoh921@kaist.ac.kr",//mickan921
+    "kmb1109@kaist.ac.kr",//mikkang
+    "nhkwak@kaist.ac.kr",//nohkwak
+    "pr0v3rbs@kaist.ac.kr",//pr0v3rbs
+    "su3604@kaist.ac.kr",//seongil-wi
+    "seungwonwoo@kaist.ac.kr",//seungwonwoo
+    "soomink@kaist.ac.kr"//soomin-kim
 };
 
 const char* github_id[] =
-{       
-        "jhong3842",    
-        "Team_Three",   //server
-        "mfaerevaag",
-        "jcassou",
-        "KAISTGUN",
-        "sbahn1992",
-        "alinghi",
-        "sangkilc",
-        "asdfljh",
-        "bjgwak",
-        "blukat29",
-        "DaramG",
-        "dinggul",
-        "donghwan17",
-        "ggoboogy",
-        "Hyeongcheol-An",
-        "ian0371",
-        "jaemoon-sim",
-        "james010kim",
-        "jchoi2022",
-        "JeongOhKye",
-        "jmpark81",
-        "juanaevv",
-        "lbh0307",
-        "mickan921",
-        "mikkang",
-        "nohkwak",
-        "pr0v3rbs",
-        "seongil-wi",
-        "seungwonwoo",
-        "soomin-kim"
+{
+    "jhong3842",
+    "Team_Three",   //server
+    "mfaerevaag",
+    "jcassou",
+    "KAISTGUN",
+    "sbahn1992",
+    "alinghi",
+    "sangkilc",
+    "asdfljh",
+    "bjgwak",
+    "blukat29",
+    "DaramG",
+    "dinggul",
+    "donghwan17",
+    "ggoboogy",
+    "Hyeongcheol-An",
+    "ian0371",
+    "jaemoon-sim",
+    "james010kim",
+    "jchoi2022",
+    "JeongOhKye",
+    "jmpark81",
+    "juanaevv",
+    "lbh0307",
+    "mickan921",
+    "mikkang",
+    "nohkwak",
+    "pr0v3rbs",
+    "seongil-wi",
+    "seungwonwoo",
+    "soomin-kim"
 };
 
 #define BUF_LEN 128
@@ -132,16 +132,16 @@ int openTCPSock(char *IP, unsigned short port) {
     if(inet_pton(AF_INET, IP, &addr.sin_addr) < 0){
         printf("%s: Failed in inet_pton()\n", __FUNCTION__);
         return -2; // FIXME - Add meaningful return value
-    } 
-    
+    }
+
     // connect
     if (connect(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) <0)
     {
         printf("%s : Failed in connect()\n", __FUNCTION__);
         return -3; // FIXME - Add meaningful return value
     }
-     
-    // return the socket handle   
+
+    // return the socket handle
     return sock_fd;
 }
 
@@ -163,10 +163,10 @@ int openUDPSock(char *IP, unsigned short port){
     if(inet_pton(AF_INET, IP, &addr.sin_addr) < 0){
         printf("%s: Failed in inet_pton()\n", __FUNCTION__);
         return -2; // FIXME - Add meaningful return value
-    } 
-    
-     
-    // return the socket handle   
+    }
+
+
+    // return the socket handle
     return sock_fd;
 }
 
@@ -258,22 +258,22 @@ ssize_t recvMsgUntil(int sock, const char* regex, char* buf, size_t n)
 
 void read_file(const char* filename)
 {
-        FILE *fd = 0 ;
-        int size = 0 ;
-        fd = fopen(filename, "r");
+    FILE *fd = 0 ;
+    int size = 0 ;
+    fd = fopen(filename, "r");
 
-	if(fd == 0){	
-		perror("read error");
-		return;
-	}
-        fseek(fd, 0, SEEK_END);
-        size = ftell(fd);
-        fseek(fd, 0, SEEK_SET);
-	if(size > 100){
-		perror("read size big\n");
-		return -1;
-	}
-        fread(g_password, 1 , size, fd);
+    if(fd == 0){
+        perror("read error");
+        return;
+    }
+    fseek(fd, 0, SEEK_END);
+    size = ftell(fd);
+    fseek(fd, 0, SEEK_SET);
+    if(size > 100){
+        perror("read size big\n");
+        return -1;
+    }
+    fread(g_password, 1 , size, fd);
 
-        fclose(fd);
+    fclose(fd);
 }
