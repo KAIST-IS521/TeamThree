@@ -80,4 +80,4 @@
 * **`int recvMsgFrom(int sock, void* buf, int len, int flags, struct sockaddr *srcaddr, socklen_t *addrlen)`**
     * This function stands for UDP protocol.
     * Returns the number of bytes received on success.
-    * `return -1`: Failed to send.    
+    * `return -1`: Failed to send.

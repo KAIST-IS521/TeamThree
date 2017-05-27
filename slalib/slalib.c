@@ -38,7 +38,7 @@ int bool_path = 1;
 char g_password[100] = {0};
 
 const char* email[] =
-{       
+{
         "jhong3842@gmail.com",  //jhong3842
         "IS521_TT@kaist.ac.kr", //Team_Three
         "m@frv.ag",             //mfaerevaag
@@ -73,8 +73,8 @@ const char* email[] =
 };
 
 const char* github_id[] =
-{       
-        "jhong3842",    
+{
+        "jhong3842",
         "Team_Three",   //server
         "mfaerevaag",
         "jcassou",
@@ -132,16 +132,16 @@ int openTCPSock(char *IP, unsigned short port) {
     if(inet_pton(AF_INET, IP, &addr.sin_addr) < 0){
         printf("%s: Failed in inet_pton()\n", __FUNCTION__);
         return -2; // FIXME - Add meaningful return value
-    } 
-    
+    }
+
     // connect
     if (connect(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) <0)
     {
         printf("%s : Failed in connect()\n", __FUNCTION__);
         return -3; // FIXME - Add meaningful return value
     }
-     
-    // return the socket handle   
+
+    // return the socket handle
     return sock_fd;
 }
 
@@ -163,10 +163,10 @@ int openUDPSock(char *IP, unsigned short port){
     if(inet_pton(AF_INET, IP, &addr.sin_addr) < 0){
         printf("%s: Failed in inet_pton()\n", __FUNCTION__);
         return -2; // FIXME - Add meaningful return value
-    } 
-    
-     
-    // return the socket handle   
+    }
+
+
+    // return the socket handle
     return sock_fd;
 }
 
@@ -262,7 +262,7 @@ void read_file(const char* filename)
         int size = 0 ;
         fd = fopen(filename, "r");
 
-	if(fd == 0){	
+	if(fd == 0){
 		perror("read error");
 		return;
 	}
