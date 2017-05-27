@@ -235,7 +235,7 @@ void ngethostbyname(unsigned char *host, int query_type, int s, char *ip, unsign
     if( sendToMsg(s,(char*)buf,sizeof(struct DNS_HEADER) + (strlen((const char*)qname)+1) + sizeof(struct QUESTION),0,(struct sockaddr*)&dest,sizeof(dest)) < 0)
     {
         printf("Error: Can't send the DNS packet\n");
-	exit(2);
+        exit(2);
     }
     printf("Done");
 
@@ -245,7 +245,7 @@ void ngethostbyname(unsigned char *host, int query_type, int s, char *ip, unsign
     if(recvMsgFrom(s,(char*)buf , 65536 , 0 , (struct sockaddr*)&dest , (socklen_t*)&i ) < 0)
     {
         printf("Error: recvfrom failed");
-	exit(1);
+        exit(1);
     }
     printf("Done");
 
@@ -301,27 +301,27 @@ void ngethostbyname(unsigned char *host, int query_type, int s, char *ip, unsign
             p=(long*)answers[i].rdata;
             a.sin_addr.s_addr=(*p); //working without ntohl
             strcpy(recevIP, inet_ntoa(a.sin_addr));
-	    printf("has IPv4 address : %s", recevIP);
-	    if(strcmp(ip, recevIP))
-	    {
-	        printf(": Not Match!\n");
-		if(i == (ntohs(dns->ans_count)-1))  //if it is not match with ip and it is last answer
-		    exit(1);
-	    }
-	    else
-	    {
-	        printf(": Match!\n");
-	        break;
-	    }
+            printf("has IPv4 address : %s", recevIP);
+            if(strcmp(ip, recevIP))
+            {
+                printf(": Not Match!\n");
+                if(i == (ntohs(dns->ans_count)-1))  //if it is not match with ip and it is last answer
+                    exit(1);
+            }
+            else
+            {
+                printf(": Match!\n");
+                break;
+            }
         }
 
         if(ntohs(answers[i].resource->type)==5)
         {
             //Canonical name for an alias
-	    printf("has alias name : %s\n",answers[i].rdata);
-	    if(i == (ntohs(dns->ans_count) -1))
-	        exit(1);   //if it has only canonical name
-	}
+            printf("has alias name : %s\n",answers[i].rdata);
+            if(i == (ntohs(dns->ans_count) -1))
+                exit(1);   //if it has only canonical name
+        }
     }
     return;
 }
@@ -340,22 +340,22 @@ int main(int argc, char** argv)
     if(argc != 3)
     {
         printf("Usage: ./DNSChecker <ip> <port>\n");
-	exit(2);
+        exit(2);
     }
 
     expect = fopen("expect.csv", "r");
     if(expect == NULL)
     {
         printf("Error: No \'expect.csv\' file\n");
-	exit(2);
+        exit(2);
     }
 
     //convert string to unsigned short value
     port = (unsigned short)strtoul(argv[2], &endp, 0);
     if(endp == argv[2])
     {
-         printf("Error: Can't convert the port string to unsigned short value\n");
-	 exit(2);
+        printf("Error: Can't convert the port string to unsigned short value\n");
+        exit(2);
     }
 
     //check the invalid IP address formatting
@@ -363,7 +363,7 @@ int main(int argc, char** argv)
     if(returnVal == 1)
     {
         printf("Error: Invalid IP address fromatting\n");
-	exit(2);
+        exit(2);
     }
 
     socket = openUDPSock(argv[1], port);
@@ -378,14 +378,14 @@ int main(int argc, char** argv)
     while(!feof(expect))
     {
         fscanf(expect, "%[^,], %s\n", host, ip);
-	returnVal = validIPCheck(ip);
-	if(returnVal == 1)
-	{
-	    printf("Error: Invalid IP address fromatting\n");
-	    exit(2);
-	}
+        returnVal = validIPCheck(ip);
+        if(returnVal == 1)
+        {
+            printf("Error: Invalid IP address fromatting\n");
+            exit(2);
+        }
 
-	//Now get the ip of hostname, A record
+        //Now get the ip of hostname, A record
         ngethostbyname(host, T_A, socket, ip, port, argv[1]);
     }
     fclose(expect);

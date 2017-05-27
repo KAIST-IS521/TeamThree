@@ -1,7 +1,5 @@
 # Makefile template for shared library
 
-
-
 CC = gcc # C compiler
 CFLAGS = -fPIC -Wall -Wextra -O2 -g -lrt -D_FILE_OFFSET_BITS=64 `gpgme-config --libs`# C flags
 LDFLAGS = -shared  # linking flags

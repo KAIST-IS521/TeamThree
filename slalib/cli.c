@@ -11,11 +11,6 @@
 #include <regex.h>
 #include "slalib.h"
 
-
-
-
-
-
 int main(int argc, char *argv[]) {
 
 	int cli_fd, len;
@@ -34,13 +29,12 @@ int main(int argc, char *argv[]) {
 	buf =(void*) malloc(4096);
 
 
-    if(
-	handshake(cli_fd,"jhong3842",
-	"/home/richong/tmp/TeamThree/slalib/TTprivate.key",
-	"/home/richong/tmp/TeamThree/slalib/pass",
-	"Connected")){
-		printf("\n--------------------------handshake success------\n");
-	}
+    if(handshake(cli_fd,"jhong3842",
+                "/home/richong/tmp/TeamThree/slalib/TTprivate.key",
+                "/home/richong/tmp/TeamThree/slalib/pass",
+                "Connected")){
+        printf("\n--------------------------handshake success------\n");
+    }
 
 	//recvMsgUntil(cli_fd, buf, 4096);
 
