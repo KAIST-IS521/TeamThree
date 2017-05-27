@@ -12,8 +12,8 @@ OBJS = $(SRCS:.c=.o)
 all: packages ${TARGET_LIB}
 
 packages:
-	if ! dpkg -l | grep libgpgme11-dev -c > /dev/null; then sudo apt-get install libgpgme11-dev; fi
-	if ! dpkg -l | grep libssl-dev -c > /dev/nulll then sudo apt-get install libssl-dev; fi
+	if ! dpkg -l | grep libgpgme11-dev -c > /dev/null; then sudo apt-get -y install libgpgme11-dev; fi
+	if ! dpkg -l | grep libssl-dev -c > /dev/nulll then sudo apt-get -y install libssl-dev; fi
 
 $(TARGET_LIB): $(OBJS)
 	$(CC) ${LDFLAGS} -o $@ $^
