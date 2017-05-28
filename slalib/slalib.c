@@ -115,7 +115,7 @@ int openTCPSock(char *IP, unsigned short port)
     if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {// socket
         printf("%s : Failed to open socket\n", __FUNCTION__);
-        return -1; // FIXME - Add meaningful return value
+        return -1;
     }
 
     // set up addr
@@ -126,14 +126,15 @@ int openTCPSock(char *IP, unsigned short port)
     if (inet_pton(AF_INET, IP, &addr.sin_addr) < 0)
     {
         printf("%s: Failed in inet_pton()\n", __FUNCTION__);
-        return -2; // FIXME - Add meaningful return value
+        close(sock_fd);
+        return -1;
     }
 
     // connect
     if (connect(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
-        printf("%s : Failed in connect()\n", __FUNCTION__);
-        return -3; // FIXME - Add meaningful return value
+        close(sock_fd);
+        return -1;
     }
 
     // return the socket handle
