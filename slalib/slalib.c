@@ -107,7 +107,8 @@ const char* github_id[] =
     "soomin-kim"
 };
 
-int openTCPSock(char *IP, unsigned short port) {
+int openTCPSock(char *IP, unsigned short port)
+{
     int sock_fd;
     struct sockaddr_in addr;
 
@@ -122,13 +123,14 @@ int openTCPSock(char *IP, unsigned short port) {
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
 
-    if(inet_pton(AF_INET, IP, &addr.sin_addr) < 0){
+    if (inet_pton(AF_INET, IP, &addr.sin_addr) < 0)
+    {
         printf("%s: Failed in inet_pton()\n", __FUNCTION__);
         return -2; // FIXME - Add meaningful return value
     }
 
     // connect
-    if (connect(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) <0)
+    if (connect(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
     {
         printf("%s : Failed in connect()\n", __FUNCTION__);
         return -3; // FIXME - Add meaningful return value
@@ -138,7 +140,8 @@ int openTCPSock(char *IP, unsigned short port) {
     return sock_fd;
 }
 
-int openUDPSock(char *IP, unsigned short port){
+int openUDPSock(char *IP, unsigned short port)
+{
     int sock_fd;
     struct sockaddr_in addr;
 
@@ -153,11 +156,11 @@ int openUDPSock(char *IP, unsigned short port){
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
 
-    if(inet_pton(AF_INET, IP, &addr.sin_addr) < 0){
+    if (inet_pton(AF_INET, IP, &addr.sin_addr) < 0)
+    {
         printf("%s: Failed in inet_pton()\n", __FUNCTION__);
         return -2; // FIXME - Add meaningful return value
     }
-
 
     // return the socket handle
     return sock_fd;
@@ -215,7 +218,6 @@ int handshake(int sock, const char* ID, const char* serverFprt, const char* pass
         printf("sendMsg fail!\n");
 
     result = (int)recv(sock, successMsg, 1024, 0);
-
     return result;
 }
 
