@@ -17,99 +17,10 @@
 #include "gpg.h"
 
 /*
-	gpgme error check func
-*/
-#define fail_if_err(err)                                      \
-  do                                                          \
-    {                                                         \
-      if (err)                                                \
-        {                                                     \
-          fprintf (stderr, "%s:%d: %s: %s\n",                 \
-                   __FILE__, __LINE__, gpgme_strsource (err), \
-          gpgme_strerror (err));                              \
-          exit (1);                                           \
-        }                                                     \
-    }                                                         \
-  while (0)
-
-/*
 	Global var define
 */
-int bool_path = 1;
-char g_password[100] = {0};
-
 struct Sock* sockList = NULL;
 int maxSockfd = -1;
-
-const char* email[] =
-{
-    "jhong3842@gmail.com",  //jhong3842
-    "IS521_TT@kaist.ac.kr", //Team_Three
-    "m@frv.ag",             //mfaerevaag
-    "jean.cassou-mounat@insa-lyon.fr",//jcassou
-    "signal@kait.ac.kr",//KAISTGUN
-    "sbahn1992@gmail.com",//sbahn1992
-    "alinghi@kaist.ac.kr",//alinghi
-    "sangkilc@kaist.ac.kr",//sangkilc
-    "cjdhlds08@gmail.com",//asdfljh
-    "bjgwak@kaist.ac.kr",//bjgwak
-    "yunjong@kaist.ac.kr",//blukat29
-    "gksgudtjr456@gmail.com",//DaramG
-    "dinggul@kaist.ac.kr",//dinggul
-    "prious@kaist.ac.kr",//donghwan17
-    "jihyeon.yoon@kaist.ac.kr",//ggoboogy
-    "anh1026@kaist.ac.kr",//Hyeongcheol-An
-    "ian0371@gmail.com",//ian0371
-    "jettijam@gmail.com",//jaemoon-sim
-    "jangha@kaist.ac.kr",//james010kim
-    "jschoi.2022@gmail.com",//jchoi2022
-    "ohkye415@gmail.com",//JeongOhKye
-    "jmpark81@kaist.ac.kr",//jmpark81
-    "juanaevv@nate.com",//juanaevv
-    "lbh0307@gmail.com",//lbh0307
-    "jsoh921@kaist.ac.kr",//mickan921
-    "kmb1109@kaist.ac.kr",//mikkang
-    "nhkwak@kaist.ac.kr",//nohkwak
-    "pr0v3rbs@kaist.ac.kr",//pr0v3rbs
-    "su3604@kaist.ac.kr",//seongil-wi
-    "seungwonwoo@kaist.ac.kr",//seungwonwoo
-    "soomink@kaist.ac.kr"//soomin-kim
-};
-
-const char* github_id[] =
-{
-    "jhong3842",
-    "Team_Three",   //server
-    "mfaerevaag",
-    "jcassou",
-    "KAISTGUN",
-    "sbahn1992",
-    "alinghi",
-    "sangkilc",
-    "asdfljh",
-    "bjgwak",
-    "blukat29",
-    "DaramG",
-    "dinggul",
-    "donghwan17",
-    "ggoboogy",
-    "Hyeongcheol-An",
-    "ian0371",
-    "jaemoon-sim",
-    "james010kim",
-    "jchoi2022",
-    "JeongOhKye",
-    "jmpark81",
-    "juanaevv",
-    "lbh0307",
-    "mickan921",
-    "mikkang",
-    "nohkwak",
-    "pr0v3rbs",
-    "seongil-wi",
-    "seungwonwoo",
-    "soomin-kim"
-};
 
 void initSockList()
 {
