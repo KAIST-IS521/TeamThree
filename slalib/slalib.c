@@ -235,7 +235,7 @@ int sendMsg(int sock, const char* buf, size_t n)
     }
     else // UDP socket
     {
-        struct sockaddr_in* addr = &sockList[sock].addr;
+        struct sockaddr* addr = (struct sockaddr*)&sockList[sock].addr;
         socklen_t addrlen = sizeof(struct sockaddr_in);
         while (n > 0)
         {
@@ -288,7 +288,7 @@ ssize_t recvMsgUntil(int sock, const char* regex, void* buf, size_t n)
     }
     else // UDP socket
     {
-        struct sockaddr_in* addr = &sockList[sock].addr;
+        struct sockaddr* addr = (struct sockaddr*)&sockList[sock].addr;
         socklen_t addrlen = sizeof(struct sockaddr_in);
         while (cnt < n)
         {
