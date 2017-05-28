@@ -113,54 +113,57 @@ ssize_t decrypt_verify(const char* cipherStr, size_t cipherLen,
     return len;
 }
 
-void encrypt(const char* plain_str, const char* fpr, char* out_str)
+ssize_t encrypt(const char* plainStr, size_t plainStrLen,
+                const char* recipFpr, char** cipherStrPtr)
 {
     gpgme_error_t error;
     gpgme_ctx_t ctx;
-    gpgme_key_t key;
-    gpgme_data_t plain,cipher;
-    char* cipher_str = NULL;
-    size_t len;
-    gpgme_key_t key_arr[3];
-
-    key_arr[0] = NULL;
-    key_arr[1] = NULL;
-    key_arr[2] = NULL;
+    gpgme_data_t plain, cipher;
+    char* cipherStr = NULL;
+    size_t len = 0;
+    gpgme_key_t keys[2] = {NULL, NULL};
 
     // connect to gpgme
     init_gpgme2(&ctx);
 
     // get key by fingerprint
-    error = gpgme_get_key(ctx,fpr,&key,0);
-    if (error || !key)
+    error = gpgme_get_key(ctx, recipFpr, &keys[0], 0);
+    if (error || keys[0] == NULL)
     {
-        printf("gpgme_get_key failed: %s %s\n",gpgme_strsource (error), gpgme_strerror (error));
+        printf("gpgme_get_key failed: %s %s\n",
+               gpgme_strsource(error), gpgme_strerror(error));
         gpgme_release (ctx);
         return;
     }
-    key_arr[0] = key;
 
     // create data containers
-    gpgme_data_new_from_mem (&plain, plain_str,strlen(plain_str),1);
+    gpgme_data_new_from_mem(&plain, plainStr, plainStrLen, 1);
     gpgme_data_new(&cipher);
 
-    error = gpgme_op_encrypt (ctx, key_arr,GPGME_ENCRYPT_ALWAYS_TRUST,plain,cipher);
+    error = gpgme_op_encrypt(ctx, keys, GPGME_ENCRYPT_ALWAYS_TRUST,
+                             plain, cipher);
     if (error)
     {
-        printf("gpgme_op_encrypt failed: %s %s\n",gpgme_strsource (error), gpgme_strerror (error));
-        gpgme_release (ctx);
-        return;
+        printf("gpgme_op_encrypt failed: %s %s\n",
+               gpgme_strsource(error), gpgme_strerror(error));
+        gpgme_data_release(plain);
+        gpgme_data_release(cipher);
+        gpgme_release(ctx);
+        return -1;
     }
 
     // release memory for data containers
+    cipherStr = gpgme_data_release_and_get_mem(cipher, &len);
+    cipherStrPtr = malloc(len);
+    memcpy(*cipherStrPtr, plainStr, len);
+
+    // release memory for data containers
+    gpgme_data_release(cipher);
     gpgme_data_release(plain);
-    cipher_str = gpgme_data_release_and_get_mem(cipher,&len);
-    if (cipher_str != NULL)
-    {
-        strcpy(out_str, cipher_str);
-    }
-    gpgme_free(cipher_str);
+    gpgme_free(cipherStr);
 
     // close gpgme connection
     gpgme_release(ctx);
+
+    return len;
 }

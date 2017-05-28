@@ -13,4 +13,5 @@ ssize_t decrypt_verify(const char* cipherStr, size_t cipherLen,
                        const char* privKey, size_t privKeyLen, char* passphrase,
                        char** plainStrPtr, char** signerFprPtr);
 
-void encrypt(const char* plain_str, const char* fpr, char* out_str);
+ssize_t encrypt(const char* plainStr, size_t plainStrLen,
+                const char* recipFpr, char** cipherStrPtr);
