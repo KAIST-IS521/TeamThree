@@ -125,53 +125,94 @@ void closeSock(int sock)
     close(sock);
 }
 
-int handshake(int sock, const char* ID, const char* serverFprt, const char* passphrase, const char* successMsg, int debug)
+int handshake(int sock, const char* ID,
+              const char* privKeyPath,
+              const char* passPath,
+              const char* successMsg)
 {
     int result = 0;
-    char challenge[4096];
-    char dec[4096];
-    char enc[1024];
-    char signerFprt[100];
-    char* tmp;
-    char random_number[100];
-    int length = 0;
-    ssize_t ret_size;
+
+    // Server cipher
+    ssize_t cipherLen;
+    char cipherStr[4096];
+    char *signerFpr;
+
+    // Decrypted message
+    ssize_t plainLen;
+    char *plainStr;
+
+    // reEncrypted message
+    ssize_t authLen;
+    char *authStr;
+
+    // Private PGP key
+    size_t privKeyLen;
+    char *passphrase, *privKey;
+
+    // Final message
+    size_t resMsgLen = strlen(successMsg);
+    char *resMsg;
+
+    passphrase = readFile(passPath, NULL);
+    if (passphrase == NULL)
+    {
+        return -1;
+    }
+
+    privKey = readFile(privKeyPath, &privKeyLen);
+    if (privKey == NULL)
+    {
+        free(passphrase);
+        return -1;
+    }
 
     result = sendMsg(sock, ID, strlen(ID));
-    if (result != -1)
+    if (result == -1) // sendMsg failed
     {
-        ret_size = recv(sock, challenge, 4096, 0);
-        if (ret_size != -1)
-        {
-            if (debug) printf("challenge!!!\n%s\n", challenge);
-
-            decrypt(challenge, dec, passphrase);
-            if (debug) printf("decrypt!!!\n%s\n", dec);
-
-            verify(dec, signerFprt);
-            if (debug) printf("fingerprint!!!\n%s\n", signerFprt);
-
-            if (strcmp(signerFprt, serverFprt) == 0)
-            {
-                if (debug) printf("sign verified!!!\n");
-                tmp = strstr(dec, "\n\n");
-                length = strstr(tmp, "-----BEGIN PGP SIGNATURE-----") - tmp;
-                strncpy(random_number, tmp + 2, length - 3);
-                if (debug) printf("random number!!!\n%s\n", random_number);
-
-                encrypt(random_number, serverFprt, enc);
-                if (debug) printf("encrypt!!!\n%s\n", enc);
-
-                result = sendMsg(sock, enc, strlen(enc));
-            }
-            else if (debug) printf("sign unverified!!!\n");
-        }
-        else if (debug) printf("recvMsgUntil fail!\n");
+        free(passphrase);
+        free(privKey);
+        return -1;
     }
-    else if (debug)
-        printf("sendMsg fail!\n");
 
-    result = (int)recv(sock, successMsg, 1024, 0);
+    cipherLen = recvMsgUntil(sock, ".*" "-----END PGP MESSAGE-----\n",
+                             cipherStr, sizeof(cipherStr) - 1);
+    if (cipherLen == -1)
+    {
+        free(passphrase);
+        free(privKey);
+        return -1;
+    }
+
+    plainLen = decrypt_verify(cipherStr, cipherLen,
+                              privKey, privKeyLen, passphrase,
+                              &plainStr, &signerFpr);
+    free(passphrase);
+    free(privKey);
+    if (plainLen == -1)
+        return -1;
+
+    authLen = encrypt(plainStr, plainLen, signerFpr, &authStr);
+    free(plainStr);
+    if (authLen == -1)
+        return -1;
+
+    result = sendMsg(sock, authStr, authLen);
+    free(authStr);
+    if (result == -1)
+        return -1;
+
+    resMsg = malloc(resMsgLen + 1);
+    resMsg[resMsgLen] = '0';
+
+    result = recvMsgUntil(sock, successMsg, resMsg, resMsgLen);
+    if (result == -1)
+    {
+        free(resMsg);
+        return -1;
+    }
+
+    result = !strncmp(resMsg, successMsg, resMsgLen) ? 0 : -1;
+    free(resMsg);
     return result;
 }
 
