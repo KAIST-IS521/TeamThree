@@ -143,6 +143,8 @@ int openTCPSock(char *IP, unsigned short port)
     int sock_fd;
     struct sockaddr_in addr;
 
+    initSockList();
+
     if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {// socket
         printf("%s : Failed to open socket\n", __FUNCTION__);
@@ -167,6 +169,9 @@ int openTCPSock(char *IP, unsigned short port)
         close(sock_fd);
         return -1;
     }
+
+    resizeSockList(sock_fd);
+    sockList[sock_fd].type = TCP;
 
     // return the socket handle
     return sock_fd;
