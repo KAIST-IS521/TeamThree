@@ -9,7 +9,7 @@ struct Sock
 };
 
 //SLA Functions
-ssize_t recvMsgUntil(int sock, const char* regex,void* buf, size_t n);
+ssize_t recvMsgUntil(int sock, const char* regex, void* buf, size_t n);
 int sendMsg(int sock, const char* buf, size_t n);
 int handshake(int sock, const char* ID, const char* serverFprt, const char* passphrase, const char* successMsg, int debug);
 void closeSock(int sock);
