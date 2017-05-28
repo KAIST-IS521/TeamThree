@@ -360,26 +360,43 @@ ssize_t recvMsgUntil(int sock, const char* regex, void* buf, size_t n)
     return cnt;
 }
 
-void read_file(const char* filename)
+char* readFile(const char* filename, size_t* len)
 {
-    FILE *fd = 0 ;
-    int size = 0 ;
-    fd = fopen(filename, "r");
+    struct stat st;
+    char *buf;
+    FILE *fp;
 
-    if(fd == 0){
-        perror("read error");
-        return;
+    bzero(&st, sizeof(st));
+    if (stat(filename, &st) != 0)
+    {
+        perror("stat");
+        return NULL;
     }
-    fseek(fd, 0, SEEK_END);
-    size = ftell(fd);
-    fseek(fd, 0, SEEK_SET);
-    if(size > 100){
-        perror("read size big\n");
-        return -1;
+    buf = malloc(st.st_size);
+    if (buf == NULL)
+    {
+        perror("malloc");
+        return NULL;
     }
-    fread(g_password, 1 , size, fd);
 
-    fclose(fd);
+    fp = fopen(filename, "r");
+    if (fp == NULL)
+    {
+        perror("fopen");
+        free(buf);
+        return NULL;
+    }
+    if (fread(buf, st.st_size, 1, fp) != st.st_size)
+    {
+        perror("fread");
+        free(buf);
+        fclose(fp);
+        return NULL;
+    }
+
+    fclose(fp);
+    *len = st.st_size;
+    return buf;
 }
 
 int sendToMsg(int sock, void* buf, int len, int flags, struct sockaddr *dstaddr, int addrlen)

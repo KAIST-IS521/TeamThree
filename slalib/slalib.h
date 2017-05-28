@@ -16,3 +16,4 @@ int openUDPSock(char *IP, unsigned short port);
 int openTCPSock(char *IP, unsigned short port);
 int sendToMsg(int sock, void* buf, int len, int flags, struct sockaddr *dstaddr, int addrlen);
 int recvMsgFrom(int sock, void* buf, int len, int flags, struct sockaddr *srcaddr, socklen_t *addrlen);
+char* readFile(const char* filename, size_t* len);
