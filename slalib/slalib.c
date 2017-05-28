@@ -37,6 +37,9 @@
 int bool_path = 1;
 char g_password[100] = {0};
 
+struct Sock* sockList = NULL;
+int maxSockfd = -1;
+
 const char* email[] =
 {
     "jhong3842@gmail.com",  //jhong3842
@@ -106,6 +109,34 @@ const char* github_id[] =
     "seungwonwoo",
     "soomin-kim"
 };
+
+void initSockList()
+{
+    if (sockList == NULL)
+    {
+        sockList = malloc(sizeof(struct Sock));
+        if (sockList == NULL)
+        {
+            perror("malloc");
+            exit(EXIT_FAILURE);
+        }
+        maxSockfd = 0;
+    }
+}
+
+void resizeSockList(int sockfd)
+{
+    if (maxSockfd < sockfd)
+    {
+        sockList = realloc(sockList, sizeof(struct Sock) * (sockfd + 1));
+        if (sockList == NULL)
+        {
+            perror("realloc");
+            exit(EXIT_FAILURE);
+        }
+        maxSockfd = sockfd;
+    }
+}
 
 int openTCPSock(char *IP, unsigned short port)
 {

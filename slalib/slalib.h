@@ -1,5 +1,13 @@
 #pragma once
 
+enum SockType {TCP, UDP};
+
+struct Sock
+{
+    enum SockType type;
+    struct sockaddr_in addr;
+};
+
 //SLA Functions
 ssize_t recvMsgUntil(int sock, const char* regex,char* buf, size_t n);
 int sendMsg(int sock, const char* buf, size_t n);
