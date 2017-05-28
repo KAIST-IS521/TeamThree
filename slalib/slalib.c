@@ -277,3 +277,17 @@ void read_file(const char* filename)
 
     fclose(fd);
 }
+
+int sendToMsg(int sock, void* buf, int len, int flags, struct sockaddr *dstaddr, int addrlen)
+{
+    int n;
+    n = sendto(sock, buf, len, flags, dstaddr, addrlen);
+    return n;
+}
+
+int recvMsgFrom(int sock, void* buf, int len, int flags, struct sockaddr *srcaddr, socklen_t *addrlen)
+{
+    int n;
+    n = recvfrom(sock, buf, len, flags, srcaddr, addrlen);
+    return n;
+}
