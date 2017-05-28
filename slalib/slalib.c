@@ -107,13 +107,6 @@ const char* github_id[] =
     "soomin-kim"
 };
 
-#define BUF_LEN 128
-struct sockaddr_in server_addr, client_addr;
-char buffer[BUF_LEN], recvBuffer[BUF_LEN];
-char temp[20];
-int server_fd, client_fd;
-int len, msg_size, clntLen, recvLen;
-
 int openTCPSock(char *IP, unsigned short port) {
     int sock_fd;
     struct sockaddr_in addr;
