@@ -57,7 +57,7 @@ def login():
             challenge = str(gpg.sign(challenge, keyid=KEYID, passphrase=PASSPHRASE))
         except:
             challenge = str(gpg.sign(challenge, default_key=KEYID, passphrase=PASSPHRASE))
-        challenge = str(gpg.encrypt(challenge, pubkey.fingerprints[0]))
+        challenge = str(gpg.encrypt(challenge, pubkey.fingerprints[0], always_trust=True))
         flask.session['encChallenge'] = challenge
         return flask.redirect('/auth')
 
