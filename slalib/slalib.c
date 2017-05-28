@@ -265,32 +265,99 @@ int handshake(int sock, const char* ID, const char* serverFprt, const char* pass
 
 int sendMsg(int sock, const char* buf, size_t n)
 {
-    return (int)send(sock, buf, n, 0);
+    const char* ptr = buf;
+    int ns;
+
+    if (sockList[sock].type == TCP)
+    {
+        while (n > 0)
+        {
+            ns = send(sock, ptr, n, 0);
+            if (ns < 1)
+                return -1;
+
+            ptr += ns;
+            n -= ns;
+        }
+    }
+    else // UDP socket
+    {
+        struct sockaddr_in* addr = &sockList[sock].addr;
+        socklen_t addrlen = sizeof(struct sockaddr_in);
+        while (n > 0)
+        {
+            ns = sendto(sock, ptr, n, 0, addr, addrlen);
+            if (ns < 1)
+                return -1;
+
+            ptr += ns;
+            n -= ns;
+        }
+    }
+    return 0;
 }
 
-ssize_t recvMsgUntil(int sock, const char* regex, char* buf, size_t n)
+ssize_t recvMsgUntil(int sock, const char* regex, void* buf, size_t n)
 {
+    char* sbuf = buf;
     regex_t state;
-    int ret;
-    char* cur = buf;
+    size_t cnt = 0;
+    int nr;
 
-    ret = regcomp(&state, regex, REG_EXTENDED);
-    if (ret != 0)
+    if (regcomp(&state, regex, REG_EXTENDED) != 0)
     {
+        perror("regcomp");
         return -1;
     }
 
-    while (n > 0)
+    bzero(buf, n);
+
+    if (sockList[sock].type == TCP)
     {
-        recv(sock, cur, 1, 0);
-        cur++;
-        n--;
-        ret = regexec(&state, buf, 0, NULL, 0);
-        if (!ret)
-            break;
+        while (cnt < n)
+        {
+            nr = recv(sock, &sbuf[cnt++], 1, 0);
+            if (nr == -1)
+            {
+                regfree(&state);
+                return -1;
+            }
+            else if (nr == 0) // EOF
+            {
+                cnt--;
+                break;
+            }
+
+            // NOTE: Buggy if buf has size exact n
+            if (regexec(&state, buf, 0, NULL, 0) == 0)
+                break;
+        }
+    }
+    else // UDP socket
+    {
+        struct sockaddr_in* addr = &sockList[sock].addr;
+        socklen_t addrlen = sizeof(struct sockaddr_in);
+        while (cnt < n)
+        {
+            if ((nr = recvfrom(sock, &sbuf[cnt++], 1, 0, addr, &addrlen)) == -1)
+            {
+                regfree(&state);
+                return -1;
+            }
+            else if (nr == 0) // 0 length datagram does not mean EOF
+            {
+                cnt--;
+                continue;
+            }
+
+            // NOTE: Buggy if buf has size exact n
+            if (regexec(&state, buf, 0, NULL, 0) == 0)
+                break;
+        }
     }
 
-    return cur - buf;
+    regfree(&state);
+    return cnt;
 }
 
 void read_file(const char* filename)
