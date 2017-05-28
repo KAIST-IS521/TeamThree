@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <regex.h>
 #include <gpgme.h>
 #include <locale.h>
@@ -365,6 +366,7 @@ char* readFile(const char* filename, size_t* len)
     struct stat st;
     char *buf;
     FILE *fp;
+    ssize_t nr;
 
     bzero(&st, sizeof(st));
     if (stat(filename, &st) != 0)
@@ -386,7 +388,8 @@ char* readFile(const char* filename, size_t* len)
         free(buf);
         return NULL;
     }
-    if (fread(buf, st.st_size, 1, fp) != st.st_size)
+    nr = fread(buf, st.st_size, 1, fp);
+    if (nr == -1 || nr != (ssize_t)st.st_size)
     {
         perror("fread");
         free(buf);
@@ -395,7 +398,8 @@ char* readFile(const char* filename, size_t* len)
     }
 
     fclose(fp);
-    *len = st.st_size;
+    if (len != NULL)
+        *len = st.st_size;
     return buf;
 }
 
