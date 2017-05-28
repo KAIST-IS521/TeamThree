@@ -156,7 +156,7 @@ int openTCPSock(char *IP, unsigned short port)
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
 
-    if (inet_pton(AF_INET, IP, &addr.sin_addr) < 0)
+    if (inet_pton(AF_INET, IP, &addr.sin_addr) != 1)
     {
         printf("%s: Failed in inet_pton()\n", __FUNCTION__);
         close(sock_fd);
@@ -197,7 +197,7 @@ int openUDPSock(char *IP, unsigned short port)
     addr->sin_family = AF_INET;
     addr->sin_port = htons(port);
 
-    if (inet_pton(AF_INET, IP, &addr->sin_addr) < 0)
+    if (inet_pton(AF_INET, IP, &addr->sin_addr) != 1)
     {
         printf("%s: Failed in inet_pton()\n", __FUNCTION__);
         close(sock_fd);
