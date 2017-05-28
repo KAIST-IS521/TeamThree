@@ -1,6 +1,4 @@
-
-
-all: packages
+all: packages import_key
 
 packages:
 	if ! dpkg -l | grep gnupg -c >>/dev/null; then sudo apt-get update; sudo apt-get -y install gnupg; fi
@@ -10,3 +8,7 @@ packages:
 	sudo -H pip -q install flask-login
 	sudo -H pip -q install flask-session
 	sudo -H pip -q install pygal
+
+import_key:
+	gpg --import ./server.pri || true
+	gpg --import ./pub/* || true
