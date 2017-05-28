@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -32,13 +33,16 @@ gpgme_error_t my_passphrase_cb(void *hook,
     return 0;
 }
 
-void decrypt(char* cipher_str, char* out_str, char* passphrase)
+ssize_t decrypt_verify(const char* cipherStr, size_t cipherLen,
+                       const char* privKey, size_t privKeyLen, char* passphrase,
+                       char** plainStrPtr, char** signerFprPtr)
 {
     gpgme_error_t error;
     gpgme_ctx_t ctx;
-    gpgme_data_t plain,cipher;
+    gpgme_data_t plain, cipher, key;
+    gpgme_verify_result_t v_result;
     size_t len = 0;
-    char* plain_str = NULL;
+    char* plainStr = NULL;
 
     // connect to gpgme
     init_gpgme2(&ctx);
@@ -46,74 +50,67 @@ void decrypt(char* cipher_str, char* out_str, char* passphrase)
     gpgme_set_passphrase_cb(ctx, my_passphrase_cb, passphrase);
 
     // create data containers
-    gpgme_data_new_from_mem(&cipher, cipher_str,strlen(cipher_str),1);
+    gpgme_data_new_from_mem(&cipher, cipherStr, cipherLen, 1);
+    gpgme_data_new_from_mem(&key, privKey, privKeyLen, 1);
     gpgme_data_new(&plain);
 
-    // decrypt
-    error = gpgme_op_decrypt(ctx,cipher,plain);
+    // import key
+    error = gpgme_op_import(ctx, key);
     if (error)
     {
-        printf("gpgme_op_decrypt failed: %s %s\n",gpgme_strsource (error), gpgme_strerror (error));
-        gpgme_release (ctx);
-        return;
+        fprintf(stderr, "gpgme_op_import failed: %s %s\n",
+                gpgme_strsource(error), gpgme_strerror(error));
+        gpgme_data_release(plain);
+        gpgme_data_release(cipher);
+        gpgme_data_release(key);
+        gpgme_release(ctx);
+        return -1;
     }
+
+    // decrypt
+    error = gpgme_op_decrypt_verify(ctx, cipher, plain);
+    if (error)
+    {
+        fprintf(stderr, "gpgme_op_decrypt_verify failed: %s %s\n",
+                gpgme_strsource(error), gpgme_strerror(error));
+        gpgme_data_release(plain);
+        gpgme_data_release(cipher);
+        gpgme_data_release(key);
+        gpgme_release(ctx);
+        return -1;
+    }
+
+    v_result = gpgme_op_verify_result(ctx);
+    if (v_result != NULL)
+    {
+        if (v_result->signatures != NULL)
+        {
+            *signerFprPtr = strdup(v_result->signatures->fpr);
+        }
+    }
+    else
+    {
+        gpgme_data_release(plain);
+        gpgme_data_release(cipher);
+        gpgme_data_release(key);
+        gpgme_release(ctx);
+        return -1;
+    }
+
+    plainStr = gpgme_data_release_and_get_mem(plain, &len);
+    *plainStrPtr = malloc(len);
+    memcpy(*plainStrPtr, plainStr, len);
 
     // release memory for data containers
     gpgme_data_release(cipher);
-    plain_str = gpgme_data_release_and_get_mem(plain,&len);
-    if (plain_str != NULL)
-    {
-        plain_str[len] = 0;
-        strcpy(out_str, plain_str);
-    }
-    gpgme_free(plain_str);
+    gpgme_data_release(plain);
+    gpgme_data_release(key);
+    gpgme_free(plainStr);
 
     // close gpgme connection
-    gpgme_release (ctx);
-}
+    gpgme_release(ctx);
 
-void verify(const char* sig_str, char* out_str)
-{
-    gpgme_error_t error;
-    gpgme_ctx_t ctx;
-    gpgme_data_t plain,sig;
-    gpgme_verify_result_t result;
-
-    if (sig_str == NULL)
-    {
-        printf("verify got null parameter\n");
-        return;
-    }
-
-    // connect to gpgme
-    init_gpgme2(&ctx);
-
-    // create data containers
-    gpgme_data_new_from_mem (&sig, sig_str,strlen(sig_str),1);
-    gpgme_data_new(&plain);
-
-    // try to verify
-    error = gpgme_op_verify(ctx,sig,NULL,plain);
-    if (error)
-    {
-        printf("gpgme_op_verify failed: %s %s\n",gpgme_strsource (error), gpgme_strerror (error));
-        gpgme_release (ctx);
-        return;
-    }
-
-    // get result
-    result = gpgme_op_verify_result (ctx);
-    if (result != NULL)
-    {
-        if (result->signatures != NULL)
-        {
-            strcpy(out_str, result->signatures->fpr);
-        }
-    }
-
-    // release memory for data containers
-    gpgme_data_release(sig);
-    gpgme_data_release(plain);
+    return len;
 }
 
 void encrypt(const char* plain_str, const char* fpr, char* out_str)
