@@ -180,23 +180,28 @@ int openTCPSock(char *IP, unsigned short port)
 int openUDPSock(char *IP, unsigned short port)
 {
     int sock_fd;
-    struct sockaddr_in addr;
+    struct sockaddr_in *addr;
 
     if ((sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {// socket
         printf("%s : Failed to open socket\n", __FUNCTION__);
-        return -1; // FIXME - Add meaningful return value
+        return -1;
     }
 
-    // set up addr
-    memset(&addr, 0x00, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
+    resizeSockList(sock_fd);
+    sockList[sock_fd].type = UDP;
+    addr = &sockList[sock_fd].addr;
 
-    if (inet_pton(AF_INET, IP, &addr.sin_addr) < 0)
+    // set up addr
+    memset(addr, 0x00, sizeof(struct sockaddr_in));
+    addr->sin_family = AF_INET;
+    addr->sin_port = htons(port);
+
+    if (inet_pton(AF_INET, IP, &addr->sin_addr) < 0)
     {
         printf("%s: Failed in inet_pton()\n", __FUNCTION__);
-        return -2; // FIXME - Add meaningful return value
+        close(sock_fd);
+        return -1;
     }
 
     // return the socket handle
