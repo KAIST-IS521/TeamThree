@@ -7,7 +7,6 @@
 #include <locale.h>
 #include "gpg.h"
 
-
 void init_gpgme2(gpgme_ctx_t *ctx)
 {
     gpgme_error_t err;
@@ -19,17 +18,17 @@ void init_gpgme2(gpgme_ctx_t *ctx)
     err = gpgme_new(ctx); // initialize the context
     gpgme_set_armor(*ctx, 1);
 
-    err = gpgme_ctx_set_engine_info(*(gpgme_ctx_t *)ctx, GPGME_PROTOCOL_OpenPGP, "/usr/bin/gpg", "~/.gnupg/");
+    err = gpgme_ctx_set_engine_info(*(gpgme_ctx_t *)ctx, GPGME_PROTOCOL_OpenPGP,
+                                    "/usr/bin/gpg", "~/.gnupg/");
 }
 
-gpgme_error_t passphrase_cb2(void *hook,
-                            const char *uid_hint,
-                            const char *passphrase_info,
-                            int prev_was_bad, int fd)
+gpgme_error_t my_passphrase_cb(void *hook,
+                               const char *uid_hint,
+                               const char *passphrase_info,
+                               int prev_was_bad, int fd)
 {
-    write (fd, hook, strlen(hook));
+    write(fd, hook, strlen(hook));
     write(fd, "\n", 1);
-
     return 0;
 }
 
