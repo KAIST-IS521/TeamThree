@@ -43,7 +43,7 @@ void decrypt(char* cipher_str, char* out_str, char* passphrase)
     // connect to gpgme
     init_gpgme2(&ctx);
 
-    gpgme_set_passphrase_cb(ctx, passphrase_cb2, passphrase);
+    gpgme_set_passphrase_cb(ctx, my_passphrase_cb, passphrase);
 
     // create data containers
     gpgme_data_new_from_mem(&cipher, cipher_str,strlen(cipher_str),1);
