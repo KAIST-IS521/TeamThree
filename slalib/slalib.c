@@ -53,7 +53,7 @@ void resizeSockList(int sockfd)
 int openTCPSock(char *IP, unsigned short port)
 {
     int sock_fd;
-    struct sockaddr_in addr;
+    struct sockaddr_in *addr;
 
     initSockList();
 
@@ -63,12 +63,13 @@ int openTCPSock(char *IP, unsigned short port)
         return -1;
     }
 
-    // set up addr
-    memset(&addr, 0x00, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
 
-    if (inet_pton(AF_INET, IP, &addr.sin_addr) != 1)
+    // set up addr
+    addr = calloc(sizeof(struct sockaddr_in), 1);
+    addr->sin_family = AF_INET;
+    addr->sin_port = htons(port);
+
+    if (inet_pton(AF_INET, IP, &addr->sin_addr) != 1)
     {
         printf("%s: Failed in inet_pton()\n", __FUNCTION__);
         close(sock_fd);
@@ -76,7 +77,7 @@ int openTCPSock(char *IP, unsigned short port)
     }
 
     // connect
-    if (connect(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+    if (connect(sock_fd, (struct sockaddr *)addr, sizeof(struct sockaddr_in)) < 0)
     {
         close(sock_fd);
         return -1;
@@ -84,6 +85,7 @@ int openTCPSock(char *IP, unsigned short port)
 
     resizeSockList(sock_fd);
     sockList[sock_fd].type = TCP;
+    sockList[sock_fd].addr = addr;
 
     // return the socket handle
     return sock_fd;
@@ -100,12 +102,8 @@ int openUDPSock(char *IP, unsigned short port)
         return -1;
     }
 
-    resizeSockList(sock_fd);
-    sockList[sock_fd].type = UDP;
-    addr = &sockList[sock_fd].addr;
-
     // set up addr
-    memset(addr, 0x00, sizeof(struct sockaddr_in));
+    addr = calloc(sizeof(struct sockaddr_in), 1);
     addr->sin_family = AF_INET;
     addr->sin_port = htons(port);
 
@@ -116,12 +114,17 @@ int openUDPSock(char *IP, unsigned short port)
         return -1;
     }
 
+    resizeSockList(sock_fd);
+    sockList[sock_fd].type = UDP;
+    sockList[sock_fd].addr = addr;
+
     // return the socket handle
     return sock_fd;
 }
 
 void closeSock(int sock)
 {
+    free(sockList[sock].addr);
     close(sock);
 }
 
@@ -227,7 +230,10 @@ int sendMsg(int sock, const char* buf, size_t n)
         {
             ns = send(sock, ptr, n, 0);
             if (ns < 1)
+            {
+                perror("send");
                 return -1;
+            }
 
             ptr += ns;
             n -= ns;
@@ -241,7 +247,10 @@ int sendMsg(int sock, const char* buf, size_t n)
         {
             ns = sendto(sock, ptr, n, 0, addr, addrlen);
             if (ns < 1)
+            {
+                perror("sendto");
                 return -1;
+            }
 
             ptr += ns;
             n -= ns;
@@ -341,7 +350,7 @@ char* readFile(const char* filename, size_t* len)
         return NULL;
     }
     nr = fread(buf, st.st_size, 1, fp);
-    if (nr == -1 || nr != (ssize_t)st.st_size)
+    if (nr == -1)
     {
         perror("fread");
         free(buf);
@@ -351,6 +360,6 @@ char* readFile(const char* filename, size_t* len)
 
     fclose(fp);
     if (len != NULL)
-        *len = st.st_size;
+        *len = nr;
     return buf;
 }

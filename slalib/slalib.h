@@ -1,11 +1,12 @@
 #pragma once
+#include <sys/socket.h>
 
 enum SockType {TCP, UDP};
 
 struct Sock
 {
     enum SockType type;
-    struct sockaddr_in addr;
+    struct sockaddr_in *addr;
 };
 
 //SLA Functions
