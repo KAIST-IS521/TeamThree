@@ -25,4 +25,4 @@ $(SRCS:.c=.d):%.d:%.c
 
 .PHONY: clean
 clean:
-	${RM} ${TARGET_LIB} ${OBJS} $(SRCS:.c=.d)
+	${RM} ${OBJS} $(SRCS:.c=.d)
