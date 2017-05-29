@@ -53,12 +53,8 @@ def login():
         challenge = str(random.getrandbits(256))
         flask.session['id'] = githubID
         flask.session['challenge'] = challenge
-        try:
-            challenge = str(gpg.sign(challenge, keyid=KEYID, passphrase=PASSPHRASE))
-        except:
-            challenge = str(gpg.sign(challenge, default_key=KEYID, passphrase=PASSPHRASE))
-        challenge = str(gpg.encrypt(challenge, pubkey.fingerprints[0], always_trust=True))
-        flask.session['encChallenge'] = challenge
+        challenge = gpg.encrypt(challenge, pubkey.fingerprints[0], always_trust=True, sign=KEYID, passphrase=PASSPHRASE)
+        flask.session['encChallenge'] = str(challenge)
         return flask.redirect('/auth')
 
     return flask.render_template('login.html')
