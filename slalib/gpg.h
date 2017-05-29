@@ -4,13 +4,14 @@
 
 void init_gpgme2(gpgme_ctx_t *ctx);
 
-gpgme_error_t passphrase_cb2(void *hook,
-                            const char *uid_hint,
-                            const char *passphrase_info,
-                            int prev_was_bad, int fd);
+gpgme_error_t my_passphrase_cb(void *hook,
+                               const char *uid_hint,
+                               const char *passphrase_info,
+                               int prev_was_bad, int fd);
 
-void decrypt(char* cipher_str, char* out_str, char* passphrase);
+ssize_t decrypt_verify(const char* cipherStr, size_t cipherLen,
+                       const char* privKey, size_t privKeyLen, char* passphrase,
+                       char** plainStrPtr, char** signerFprPtr);
 
-void verify(const char* sig_str, char* out_str);
-
-void encrypt(const char* plain_str, const char* fpr, char* out_str);
+ssize_t encrypt(const char* plainStr, size_t plainStrLen,
+                const char* recipFpr, char** cipherStrPtr);
