@@ -3,81 +3,33 @@
 ## Library function
 
 * **`int openTCPSock(char *IP, unsigned short port)`**
-    * This function open TCP socket which provided IP and Port.
+    * This function open TCP socket with provided IP and Port.
+	* Return Value : sockfd
     * `return -1`: Failed to open socket.
-    * `return -2`: Failed in inet_pton().
-    * `return -3`: Failed in connect().
 
 * **`int openUDPSock(char *IP, unsigned short port)`**
-    * This function open UCP socket which provided IP and Port.
+    * This function open UCP socket with provided IP and Port.
+	* Note that UDP is connectionless so it saves sock info for later use.
+	* Return Value : sockfd
     * `return -1`: Failed to open socket.
-    * `return -2`: Failed in inet_pton().
 
 * **`void closeSock(int sock)`**
     * This function closes the socket.
 
 * **`ssize_t recvMsgUntil(int sock, const char* regex, void* buf, size_t n)`**
     * This function stands for TCP protocol.
-    * This function reads in maximum n bytes fro the given socket.
+    * This function reads in maximum n bytes from the given socket.
+	* Return Value : length of recieved data
     * `return -1`: Failed to read.
-    * `reg_error_number`
-```
- 		case REG_NOMATCH:
-			return -11;
-			break;
-                case REG_BADPAT:
-                        return -12;
-                        break;
-                case REG_ECOLLATE:
-                        return -13;
-                        break;
-                case REG_ECTYPE:
-                        return -14;
-                        break;
-                case REG_EESCAPE:
-                        return -15;
-                        break;
-                case REG_ESUBREG:
-                        return -16;
-                        break;
-                case REG_EBRACK:
-                        return -17;
-                        break;
-                case REG_EPAREN:
-                        return -18;
-                        break;
-                case REG_EBRACE:
-                        return -19;
-                        break;
-                case REG_BADBR:
-                        return -20;
-                        break;
-                case REG_ERANGE:
-                        return -21;
-                        break;
-                case REG_ESPACE:
-                        return -22;
-                        break;
-                case REG_BADRPT:
-                        return -23;
-```
+	* Even though regex never matched, it can return positive value.
 
 * **`int sendMsg(int sock, const char* buf, size_t n)`**
     * This function stands for TCP protocol.
     * This function sends a string to the connected socket.
-    * `return -1`: Failed to read.
+	* `return 0`: Succeeded to send all data.
+    * `return -1`: Failed to send.
 
 * **`int handshake(int sock, const char* ID, const char* privKeyPath, const char* passPath, const char* successMsg)`**
     * This function performs PGP-based authentication.
-    * `return -1`: Not maching succuss Message.
-    * `return -2`: Not correct decryption number.
-
-* **`int sendToMsg(int sock, void* buf, int len, int flags, struct sockaddr *dstaddr, int addrlen)`**
-    * This function stands for UDP protocol.
-    * Returns the number of bytes sent on success.
-    * `return -1`: Failed to send.
-
-* **`int recvMsgFrom(int sock, void* buf, int len, int flags, struct sockaddr *srcaddr, socklen_t *addrlen)`**
-    * This function stands for UDP protocol.
-    * Returns the number of bytes received on success.
-    * `return -1`: Failed to send.
+	* `return 0`: handshake succeeded.
+    * `return -1`: handshake failed.
