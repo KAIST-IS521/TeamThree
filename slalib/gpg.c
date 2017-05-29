@@ -16,20 +16,36 @@ void init_gpgme2(gpgme_ctx_t *ctx)
     gpgme_set_locale(NULL, LC_CTYPE, setlocale(LC_CTYPE, NULL)); // set gpgme locale
     gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP); // initialize gpgme
 
-    err = gpgme_new(ctx); // initialize the context
+    gpgme_new(ctx); // initialize the context
     gpgme_set_armor(*ctx, 1);
 
     err = gpgme_ctx_set_engine_info(*(gpgme_ctx_t *)ctx, GPGME_PROTOCOL_OpenPGP,
                                     "/usr/bin/gpg", "~/.gnupg/");
+    if (err)
+    {
+        fprintf(stderr, "gpgme_op_import failed: %s %s\n",
+                gpgme_strsource(err), gpgme_strerror(err));
+        exit(EXIT_FAILURE);
+    }
 }
 
 gpgme_error_t my_passphrase_cb(void *hook,
-                               const char *uid_hint,
-                               const char *passphrase_info,
-                               int prev_was_bad, int fd)
+                               __attribute__((unused)) const char *uid_hint,
+                               __attribute__((unused)) const char *passphrase_info,
+                               __attribute__((unused)) int prev_was_bad,
+                               int fd)
 {
-    write(fd, hook, strlen(hook));
-    write(fd, "\n", 1);
+    if (write(fd, hook, strlen(hook)) == -1)
+    {
+        perror("write");
+        exit(EXIT_FAILURE);
+    }
+
+    if (write(fd, "\n", 1) == -1)
+    {
+        perror("write");
+        exit(EXIT_FAILURE);
+    }
     return 0;
 }
 
@@ -103,7 +119,6 @@ ssize_t decrypt_verify(const char* cipherStr, size_t cipherLen,
 
     // release memory for data containers
     gpgme_data_release(cipher);
-    gpgme_data_release(plain);
     gpgme_data_release(key);
     gpgme_free(plainStr);
 
@@ -133,7 +148,7 @@ ssize_t encrypt(const char* plainStr, size_t plainStrLen,
         printf("gpgme_get_key failed: %s %s\n",
                gpgme_strsource(error), gpgme_strerror(error));
         gpgme_release (ctx);
-        return;
+        return -1;
     }
 
     // create data containers
@@ -154,11 +169,10 @@ ssize_t encrypt(const char* plainStr, size_t plainStrLen,
 
     // release memory for data containers
     cipherStr = gpgme_data_release_and_get_mem(cipher, &len);
-    cipherStrPtr = malloc(len);
-    memcpy(*cipherStrPtr, plainStr, len);
+    *cipherStrPtr = malloc(len);
+    memcpy(*cipherStrPtr, cipherStr, len);
 
     // release memory for data containers
-    gpgme_data_release(cipher);
     gpgme_data_release(plain);
     gpgme_free(cipherStr);
 
