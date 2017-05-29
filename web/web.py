@@ -109,7 +109,17 @@ def upload_file():
         status_chart = pygal.Line(width=1200, height=675, explicit_size=True, title='Service Status', style=DarkSolarizedStyle, x_label_rotation=20)
         status_chart.x_labels = labels
         status_chart.add(service, values)
-        return flask.render_template('chart.html', body=status_chart.render())
+        return '''<html>
+<head>
+    <title>Service Status</title>
+    <h1>Chart</h1>
+    <script type="text/javascript" src="./svg.jquery.js"></script>
+    <script type="text/javascript" src="./pygal-tooltips.js"></script>
+</head>
+<body>
+    ''' + status_chart.render() + '''
+</body>
+</html>'''
 
     return flask.render_template('upload.html')
 
