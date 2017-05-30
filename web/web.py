@@ -9,6 +9,18 @@ import gnupg
 import os
 import sys
 
+chart_template = '''<html>
+<head>
+    <title>Service Status</title>
+    <h1>Chart</h1>
+    <script type="text/javascript" src="./svg.jquery.js"></script>
+    <script type="text/javascript" src="./pygal-tooltips.js"></script>
+</head>
+<body>
+    %s
+</body>
+</html>'''
+
 login_manager = LoginManager()
 session_manager = Session()
 app = flask.Flask(__name__, template_folder='templates')
@@ -104,18 +116,9 @@ def upload_file():
             values.append(1 if items[3].find('up') != -1 else 0)
         status_chart = pygal.Line(width=1200, height=675, explicit_size=True, title='Service Status', style=DarkSolarizedStyle, x_label_rotation=20)
         status_chart.x_labels = labels
+        status_chart.y_labels = [{'label': 'up', 'value': 1}, {'label': 'down', 'value': 0}]
         status_chart.add(service, values)
-        return '''<html>
-<head>
-    <title>Service Status</title>
-    <h1>Chart</h1>
-    <script type="text/javascript" src="./svg.jquery.js"></script>
-    <script type="text/javascript" src="./pygal-tooltips.js"></script>
-</head>
-<body>
-    ''' + status_chart.render() + '''
-</body>
-</html>'''
+        return chart_template % (status_chart.render())
 
     return flask.render_template('upload.html')
 
